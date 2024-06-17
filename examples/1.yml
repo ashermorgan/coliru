@@ -1,0 +1,14 @@
+# Invalid manifest
+
+steps:
+  - not_copy:
+    - src: foo
+      dst: ~/foo
+    - src: bar
+      dst: ~/test/bar
+    tags: [ a, b ]
+
+  - copy:
+    - not_src: baz
+      dst: /baz
+    tags: [ b, c ]

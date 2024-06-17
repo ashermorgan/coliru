@@ -1,0 +1,14 @@
+# Valid manifest
+
+steps:
+  - copy:
+    - src: foo
+      dst: ~/foo
+    - src: bar
+      dst: ~/test/bar
+    tags: [ a, b ]
+
+  - copy:
+    - src: baz
+      dst: /baz
+    tags: [ b, c ]
