@@ -7,13 +7,13 @@
 /// match any list of tags.
 ///
 /// ```
-/// let rules = ["linux|macos", "system", "^work"];
-/// let tags_1 = ["macos", "system", "user"];
-/// let tags_2 = ["linux", "system", "work"];
+/// let rules = ["linux|macos", "system", "^work"].map(|x| x.to_string());
+/// let tags_1 = ["macos", "system", "user"].map(|x| x.to_string());
+/// let tags_2 = ["linux", "system", "work"].map(|x| x.to_string());
 /// assert_eq!(tags_match(&rules, &tags_1), true);
 /// assert_eq!(tags_match(&rules, &tags_2), false);
 /// ```
-pub fn tags_match(rules: &[&str], tags: &[&str]) -> bool {
+pub fn tags_match(rules: &[String], tags: &[String]) -> bool {
     for rule in rules.iter() {
         let is_negated = rule.chars().nth(0) == Some('^');
         let _rule: &str;
@@ -24,7 +24,7 @@ pub fn tags_match(rules: &[&str], tags: &[&str]) -> bool {
         }
 
         let tag_found = _rule.split("|").any(|subrule| {
-            tags.iter().any(|&tag| {
+            tags.iter().any(|tag| {
                 tag == subrule
             })
         });
@@ -43,15 +43,16 @@ mod tests {
 
     #[test]
     fn tags_match_empty_parameters() {
+        let tags_1 = ["linux", "user"].map(|x| x.to_string());
         assert_eq!(tags_match(&[], &[]), true);
-        assert_eq!(tags_match(&[], &["linux", "user"]), true);
-        assert_eq!(tags_match(&["linux", "user"], &[]), false);
+        assert_eq!(tags_match(&[], &tags_1), true);
+        assert_eq!(tags_match(&tags_1, &[]), false);
     }
 
     #[test]
     fn tags_match_one_match() {
-        let tags_1 = ["linux"];
-        let tags_2 = ["linux", "windows"];
+        let tags_1 = ["linux"].map(|x| x.to_string());
+        let tags_2 = ["linux", "windows"].map(|x| x.to_string());
 
         assert_eq!(tags_match(&tags_1.clone(), &tags_1.clone()), true);
         assert_eq!(tags_match(&tags_1.clone(), &tags_2.clone()), true);
@@ -61,8 +62,8 @@ mod tests {
 
     #[test]
     fn tags_match_two_matches() {
-        let tags_1 = ["linux", "user"];
-        let tags_2 = ["linux", "user", "windows"];
+        let tags_1 = ["linux", "user"].map(|x| x.to_string());
+        let tags_2 = ["linux", "user", "windows"].map(|x| x.to_string());
 
         assert_eq!(tags_match(&tags_1.clone(), &tags_1.clone()), true);
         assert_eq!(tags_match(&tags_1.clone(), &tags_2.clone()), true);
@@ -72,11 +73,11 @@ mod tests {
 
     #[test]
     fn tags_match_negated() {
-        let rules = ["^linux"];
-        let tags_1 = ["linux"];
-        let tags_2 = ["windows"];
-        let tags_3 = ["macos"];
-        let tags_4 = ["linux", "macos"];
+        let rules = ["^linux"].map(|x| x.to_string());
+        let tags_1 = ["linux"].map(|x| x.to_string());
+        let tags_2 = ["windows"].map(|x| x.to_string());
+        let tags_3 = ["macos"].map(|x| x.to_string());
+        let tags_4 = ["linux", "macos"].map(|x| x.to_string());
 
         assert_eq!(tags_match(&rules.clone(), &tags_1.clone()), false);
         assert_eq!(tags_match(&rules.clone(), &tags_2.clone()), true);
@@ -86,12 +87,12 @@ mod tests {
 
     #[test]
     fn tags_match_negated_two_rules() {
-        let rules_1 = ["^linux", "^user"];
-        let rules_2 = ["^linux", "user"];
-        let tags_1 = ["linux", "system"];
-        let tags_2 = ["windows", "user"];
-        let tags_3 = ["macos", "system"];
-        let tags_4 = ["linux", "macos", "user"];
+        let rules_1 = ["^linux", "^user"].map(|x| x.to_string());
+        let rules_2 = ["^linux", "user"].map(|x| x.to_string());
+        let tags_1 = ["linux", "system"].map(|x| x.to_string());
+        let tags_2 = ["windows", "user"].map(|x| x.to_string());
+        let tags_3 = ["macos", "system"].map(|x| x.to_string());
+        let tags_4 = ["linux", "macos", "user"].map(|x| x.to_string());
 
         assert_eq!(tags_match(&rules_1.clone(), &tags_1.clone()), false);
         assert_eq!(tags_match(&rules_1.clone(), &tags_2.clone()), false);
@@ -105,11 +106,11 @@ mod tests {
 
     #[test]
     fn tags_match_union() {
-        let rules = ["linux|macos"];
-        let tags_1 = ["linux"];
-        let tags_2 = ["macos"];
-        let tags_3 = ["linux", "macos"];
-        let tags_4 = ["windows"];
+        let rules = ["linux|macos"].map(|x| x.to_string());
+        let tags_1 = ["linux"].map(|x| x.to_string());
+        let tags_2 = ["macos"].map(|x| x.to_string());
+        let tags_3 = ["linux", "macos"].map(|x| x.to_string());
+        let tags_4 = ["windows"].map(|x| x.to_string());
 
         assert_eq!(tags_match(&rules.clone(), &tags_1.clone()), true);
         assert_eq!(tags_match(&rules.clone(), &tags_2.clone()), true);
@@ -119,12 +120,12 @@ mod tests {
 
     #[test]
     fn tags_match_union_two_rules() {
-        let rules_1 = ["linux|macos", "user|system"];
-        let rules_2 = ["linux|macos", "user"];
-        let tags_1 = ["user", "linux"];
-        let tags_2 = ["system", "macos"];
-        let tags_3 = ["user", "linux", "macos"];
-        let tags_4 = ["system", "windows"];
+        let rules_1 = ["linux|macos", "user|system"].map(|x| x.to_string());
+        let rules_2 = ["linux|macos", "user"].map(|x| x.to_string());
+        let tags_1 = ["user", "linux"].map(|x| x.to_string());
+        let tags_2 = ["system", "macos"].map(|x| x.to_string());
+        let tags_3 = ["user", "linux", "macos"].map(|x| x.to_string());
+        let tags_4 = ["system", "windows"].map(|x| x.to_string());
 
         assert_eq!(tags_match(&rules_1.clone(), &tags_1.clone()), true);
         assert_eq!(tags_match(&rules_1.clone(), &tags_2.clone()), true);
@@ -138,11 +139,11 @@ mod tests {
 
     #[test]
     fn tags_match_union_negated() {
-        let rules = ["^linux|macos"];
-        let tags_1 = ["linux"];
-        let tags_2 = ["macos"];
-        let tags_3 = ["linux", "macos"];
-        let tags_4 = ["windows"];
+        let rules = ["^linux|macos"].map(|x| x.to_string());
+        let tags_1 = ["linux"].map(|x| x.to_string());
+        let tags_2 = ["macos"].map(|x| x.to_string());
+        let tags_3 = ["linux", "macos"].map(|x| x.to_string());
+        let tags_4 = ["windows"].map(|x| x.to_string());
 
         assert_eq!(tags_match(&rules.clone(), &tags_1.clone()), false);
         assert_eq!(tags_match(&rules.clone(), &tags_2.clone()), false);
@@ -152,12 +153,12 @@ mod tests {
 
     #[test]
     fn tags_match_union_negated_two_rules() {
-        let rules_1 = ["^linux|macos", "^user"];
-        let rules_2 = ["^linux|macos", "user|system"];
-        let rules_3 = ["^linux|macos", "user"];
-        let tags_1 = ["linux", "macos", "system"];
-        let tags_2 = ["windows", "user"];
-        let tags_3 = ["windows", "system"];
+        let rules_1 = ["^linux|macos", "^user"].map(|x| x.to_string());
+        let rules_2 = ["^linux|macos", "user|system"].map(|x| x.to_string());
+        let rules_3 = ["^linux|macos", "user"].map(|x| x.to_string());
+        let tags_1 = ["linux", "macos", "system"].map(|x| x.to_string());
+        let tags_2 = ["windows", "user"].map(|x| x.to_string());
+        let tags_3 = ["windows", "system"].map(|x| x.to_string());
 
         assert_eq!(tags_match(&rules_1.clone(), &tags_1.clone()), false);
         assert_eq!(tags_match(&rules_1.clone(), &tags_2.clone()), false);

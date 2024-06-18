@@ -5,19 +5,19 @@ use std::path::{Path, PathBuf};
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct CopyOptions {
-    src: PathBuf,
-    dst: PathBuf,
+    pub src: PathBuf,
+    pub dst: PathBuf,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Step {
-    copy: Vec<CopyOptions>,
-    tags: Vec<String>,
+    pub copy: Vec<CopyOptions>,
+    pub tags: Vec<String>,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Manifest {
-    steps: Vec<Step>,
+    pub steps: Vec<Step>,
 }
 
 /// Parse a coliru YAML manifest file
