@@ -4,14 +4,20 @@ use std::fs::read_to_string;
 use std::path::{Path, PathBuf};
 
 #[derive(Debug, PartialEq, Deserialize)]
-pub struct CopyOptions {
+pub struct CopyLinkOptions {
     pub src: String,
     pub dst: String,
 }
 
 #[derive(Debug, PartialEq, Deserialize)]
 pub struct Step {
-    pub copy: Vec<CopyOptions>,
+    #[serde(default)]
+    pub copy: Vec<CopyLinkOptions>,
+
+    #[serde(default)]
+    pub link: Vec<CopyLinkOptions>,
+
+    #[serde(default)]
     pub tags: Vec<String>,
 }
 
@@ -53,7 +59,7 @@ mod tests {
 
     #[test]
     fn parse_manifest_file_invalid() {
-        let expected = "steps[0]: missing field `copy` at line 4 column 5";
+        let expected = "steps[1].copy[0]: missing field `src` at line 12 column 7";
         let actual = parse_manifest_file(Path::new("examples/1.yml"));
         assert_eq!(actual, Err(String::from(expected)));
     }
@@ -63,12 +69,13 @@ mod tests {
         let expected = Manifest {
             steps: vec![
                 Step {
-                    copy: vec![
-                        CopyOptions{
+                    copy: vec![],
+                    link: vec![
+                        CopyLinkOptions{
                             src: String::from("foo"),
                             dst: String::from("~/foo"),
                         },
-                        CopyOptions{
+                        CopyLinkOptions{
                             src: String::from("bar"),
                             dst: String::from("~/test/bar"),
                         },
@@ -77,12 +84,13 @@ mod tests {
                 },
                 Step {
                     copy: vec![
-                        CopyOptions{
+                        CopyLinkOptions{
                             src: String::from("baz"),
                             dst: String::from("/baz"),
                         },
                     ],
-                    tags: vec![String::from("b"), String::from("c")],
+                    link: vec![],
+                    tags: vec![],
                 }
             ],
             base_dir: PathBuf::from("examples"),

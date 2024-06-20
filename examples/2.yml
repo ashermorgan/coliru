@@ -1,7 +1,7 @@
 # Valid manifest
 
 steps:
-  - copy:
+  - link:
     - src: foo
       dst: ~/foo
     - src: bar
@@ -11,4 +11,4 @@ steps:
   - copy:
     - src: baz
       dst: /baz
-    tags: [ b, c ]
+    # tags default to []

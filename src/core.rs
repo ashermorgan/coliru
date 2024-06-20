@@ -1,8 +1,8 @@
 use std::env::set_current_dir;
 use std::path::Path;
-use super::manifest::{CopyOptions, Manifest, parse_manifest_file};
+use super::manifest::{CopyLinkOptions, Manifest, parse_manifest_file};
 use super::tags::tags_match;
-use super::utils::copy_file;
+use super::utils::{copy_file, link_file};
 
 /// Execute the steps in a coliru manifest file according to a set of tag rules
 pub fn execute_manifest_file(path: &Path, tag_rules: Vec<String>, dry_run: bool)
@@ -29,11 +29,12 @@ fn execute_manifest(manifest: Manifest, tag_rules: Vec<String>, dry_run: bool) {
         println!("");
 
         execute_copies(&step.copy, dry_run);
+        execute_links(&step.link, dry_run);
     }
 }
 
 /// Execute the copy commands specified in a coliru manifest step
-fn execute_copies(copies: &[CopyOptions], dry_run: bool) {
+fn execute_copies(copies: &[CopyLinkOptions], dry_run: bool) {
     for copy in copies {
         print!("  Copy {} to {}", copy.src, copy.dst);
         if dry_run {
@@ -43,6 +44,22 @@ fn execute_copies(copies: &[CopyOptions], dry_run: bool) {
         println!("");
 
         if let Err(why) = copy_file(&copy.src, &copy.dst) {
+            eprintln!("    Error: {}", why);
+        }
+    }
+}
+
+/// Execute the link commands specified in a coliru manifest step
+fn execute_links(copies: &[CopyLinkOptions], dry_run: bool) {
+    for copy in copies {
+        print!("  Link {} to {}", copy.src, copy.dst);
+        if dry_run {
+            println!(" (skipped due to --dry-run)");
+            return;
+        }
+        println!("");
+
+        if let Err(why) = link_file(&copy.src, &copy.dst) {
             eprintln!("    Error: {}", why);
         }
     }
