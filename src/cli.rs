@@ -10,4 +10,8 @@ pub struct CLI {
     /// The set of tag rules to enforce
     #[arg(short, long, num_args=0..)]
     pub tag_rules: Vec<String>,
+
+    /// Do a trial run without any permanent changes
+    #[arg(short = 'n', long)]
+    pub dry_run: bool,
 }
