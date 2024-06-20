@@ -5,16 +5,17 @@ use super::tags::tags_match;
 use super::utils::{copy_file, link_file};
 
 /// Execute the steps in a coliru manifest file according to a set of tag rules
-pub fn execute_manifest_file(path: &Path, tag_rules: Vec<String>, dry_run: bool)
-{
+pub fn execute_manifest_file(path: &Path, tag_rules: Vec<String>, dry_run: bool,
+                             copy: bool) {
     match parse_manifest_file(path) {
-        Ok(manifest) => execute_manifest(manifest, tag_rules, dry_run),
+        Ok(manifest) => execute_manifest(manifest, tag_rules, dry_run, copy),
         Err(why) => eprintln!("Error: {}", why),
     };
 }
 
 /// Execute the steps in a coliru manifest according to a set of tag rules
-fn execute_manifest(manifest: Manifest, tag_rules: Vec<String>, dry_run: bool) {
+fn execute_manifest(manifest: Manifest, tag_rules: Vec<String>, dry_run: bool,
+                    copy: bool) {
     if let Err(why) = set_current_dir(manifest.base_dir) {
         eprintln!("Error: {}", why);
         return;
@@ -29,7 +30,11 @@ fn execute_manifest(manifest: Manifest, tag_rules: Vec<String>, dry_run: bool) {
         println!("");
 
         execute_copies(&step.copy, dry_run);
-        execute_links(&step.link, dry_run);
+        if copy {
+            execute_copies(&step.link, dry_run);
+        } else {
+            execute_links(&step.link, dry_run);
+        }
     }
 }
 
