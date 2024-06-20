@@ -1,5 +1,6 @@
 use super::manifest;
 use super::tags;
+use super::utils::copy_file;
 
 /// Execute the steps in a coliru manifest according to a set of tag rules
 pub fn execute_manifest(manifest: manifest::Manifest, rules: Vec<String>) {
@@ -16,6 +17,9 @@ pub fn execute_manifest(manifest: manifest::Manifest, rules: Vec<String>) {
 /// Execute the copy commands specified in a coliru manifest step
 fn execute_copies(copies: &[manifest::CopyOptions]) {
     for copy in copies {
-        println!("  Copy {} to {}", copy.src.display(), copy.dst.display());
+        println!("  Copy {} to {}", copy.src, copy.dst);
+        if let Err(why) = copy_file(&copy.src, &copy.dst) {
+            eprintln!("    Error: {}", why);
+        }
     }
 }

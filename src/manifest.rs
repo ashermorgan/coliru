@@ -1,12 +1,12 @@
 use serde::{Serialize, Deserialize};
 use serde_yaml;
 use std::fs::read_to_string;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct CopyOptions {
-    pub src: PathBuf,
-    pub dst: PathBuf,
+    pub src: String,
+    pub dst: String,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -57,12 +57,12 @@ mod tests {
                 Step {
                     copy: vec![
                         CopyOptions{
-                            src: PathBuf::from("foo"),
-                            dst: PathBuf::from("~/foo")
+                            src: String::from("foo"),
+                            dst: String::from("~/foo"),
                         },
                         CopyOptions{
-                            src: PathBuf::from("bar"),
-                            dst: PathBuf::from("~/test/bar")
+                            src: String::from("bar"),
+                            dst: String::from("~/test/bar"),
                         },
                     ],
                     tags: vec![String::from("a"), String::from("b")],
@@ -70,8 +70,8 @@ mod tests {
                 Step {
                     copy: vec![
                         CopyOptions{
-                            src: PathBuf::from("baz"),
-                            dst: PathBuf::from("/baz")
+                            src: String::from("baz"),
+                            dst: String::from("/baz"),
                         },
                     ],
                     tags: vec![String::from("b"), String::from("c")],

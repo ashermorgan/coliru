@@ -2,6 +2,7 @@ mod cli;
 mod core;
 mod manifest;
 mod tags;
+mod utils;
 
 use clap::Parser;
 
