@@ -1,9 +1,15 @@
+use std::env::set_current_dir;
 use super::manifest;
 use super::tags;
 use super::utils::copy_file;
 
 /// Execute the steps in a coliru manifest according to a set of tag rules
 pub fn execute_manifest(manifest: manifest::Manifest, rules: Vec<String>) {
+    if let Err(why) = set_current_dir(manifest.base_dir) {
+        eprintln!("Error: {}", why);
+        return;
+    }
+
     for (i, step) in manifest.steps.iter().enumerate() {
         if tags::tags_match(&rules, &step.tags) {
             println!("Step {}:", i+1);

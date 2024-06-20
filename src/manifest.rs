@@ -1,34 +1,42 @@
-use serde::{Serialize, Deserialize};
+use serde::Deserialize;
 use serde_yaml;
 use std::fs::read_to_string;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Deserialize)]
 pub struct CopyOptions {
     pub src: String,
     pub dst: String,
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Deserialize)]
 pub struct Step {
     pub copy: Vec<CopyOptions>,
     pub tags: Vec<String>,
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Deserialize)]
+struct RawManifest {
+    steps: Vec<Step>,
+}
+
+#[derive(Debug, PartialEq)]
 pub struct Manifest {
     pub steps: Vec<Step>,
+    pub base_dir: PathBuf,
 }
 
 /// Parse a coliru YAML manifest file
 pub fn parse_manifest_file(path: &Path) -> Result<Manifest, String> {
-    match read_to_string(path) {
-        Ok(raw) => match serde_yaml::from_str::<Manifest>(&raw) {
-            Ok(result) => Ok(result),
-            Err(why) => Err(why.to_string()),
-        }
-        Err(why) => Err(why.to_string()),
-    }
+    let raw_str = read_to_string(path).map_err(|why| why.to_string())?;
+    let raw_manifest = serde_yaml::from_str::<RawManifest>(&raw_str)
+        .map_err(|why| why.to_string())?;
+    let base_dir = path.parent().or_else(|| Some(&Path::new("."))).unwrap();
+
+    Ok(Manifest {
+        steps: raw_manifest.steps,
+        base_dir: base_dir.to_path_buf(),
+    })
 }
 
 #[cfg(test)]
@@ -77,6 +85,7 @@ mod tests {
                     tags: vec![String::from("b"), String::from("c")],
                 }
             ],
+            base_dir: PathBuf::from("examples"),
         };
         let actual = parse_manifest_file(Path::new("examples/2.yml"));
         assert_eq!(actual, Ok(expected));
