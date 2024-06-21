@@ -4,6 +4,7 @@ use std::fs;
 #[cfg(target_family = "unix")]
 use std::os::unix::fs::symlink;
 use std::path::PathBuf;
+use std::process::Command;
 
 
 /// Copies the contents of a local file to another local file.
@@ -45,4 +46,19 @@ fn prepare_path(path: &str) -> Result<PathBuf> {
         fs::remove_file(&_dst)?;
     }
     Ok(_dst)
+}
+
+/// Execute a local shell script
+///
+/// Uses "sh -c" on Unix and is not yet implemented on Windows.
+pub fn run_script(path: &str) -> Result<()> {
+    if cfg!(target_family = "unix") {
+        Command::new("sh")
+            .arg("-c")
+            .arg(fs::canonicalize(path)?)
+            .status()?;
+    } else {
+        unimplemented!();
+    }
+    Ok(())
 }
