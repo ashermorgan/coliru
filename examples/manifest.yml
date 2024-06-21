@@ -1,14 +1,16 @@
 # Valid manifest
 
 steps:
-  - link:
+  - copy:
+    - src: foo
+      dst: /foo
+    link:
     - src: foo
       dst: ~/foo
     - src: bar
       dst: ~/test/bar
     tags: [ a, b ]
 
-  - copy:
+  - run:
     - src: baz
-      dst: /baz
-    # tags default to []
+    tags: [ c ]

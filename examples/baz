@@ -1,1 +1,3 @@
-baz!
+#!/usr/bin/sh
+
+echo 'baz!' > ~/baz

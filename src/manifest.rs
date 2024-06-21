@@ -10,12 +10,20 @@ pub struct CopyLinkOptions {
 }
 
 #[derive(Debug, PartialEq, Deserialize)]
+pub struct RunOptions {
+    pub src: String,
+}
+
+#[derive(Debug, PartialEq, Deserialize)]
 pub struct Step {
     #[serde(default)]
     pub copy: Vec<CopyLinkOptions>,
 
     #[serde(default)]
     pub link: Vec<CopyLinkOptions>,
+
+    #[serde(default)]
+    pub run: Vec<RunOptions>,
 
     #[serde(default)]
     pub tags: Vec<String>,
@@ -53,14 +61,14 @@ mod tests {
     #[test]
     fn parse_manifest_file_missing() {
         let expected = "No such file or directory (os error 2)";
-        let actual = parse_manifest_file(Path::new("examples/0.yml"));
+        let actual = parse_manifest_file(Path::new("examples/missing.yml"));
         assert_eq!(actual, Err(String::from(expected)));
     }
 
     #[test]
     fn parse_manifest_file_invalid() {
         let expected = "steps[1].copy[0]: missing field `src` at line 12 column 7";
-        let actual = parse_manifest_file(Path::new("examples/1.yml"));
+        let actual = parse_manifest_file(Path::new("examples/invalid.yml"));
         assert_eq!(actual, Err(String::from(expected)));
     }
 
@@ -69,33 +77,39 @@ mod tests {
         let expected = Manifest {
             steps: vec![
                 Step {
-                    copy: vec![],
+                    copy: vec![
+                        CopyLinkOptions {
+                            src: String::from("foo"),
+                            dst: String::from("/foo"),
+                        },
+                    ],
                     link: vec![
-                        CopyLinkOptions{
+                        CopyLinkOptions {
                             src: String::from("foo"),
                             dst: String::from("~/foo"),
                         },
-                        CopyLinkOptions{
+                        CopyLinkOptions {
                             src: String::from("bar"),
                             dst: String::from("~/test/bar"),
                         },
                     ],
+                    run: vec![],
                     tags: vec![String::from("a"), String::from("b")],
                 },
                 Step {
-                    copy: vec![
-                        CopyLinkOptions{
+                    copy: vec![],
+                    link: vec![],
+                    run: vec![
+                        RunOptions {
                             src: String::from("baz"),
-                            dst: String::from("/baz"),
                         },
                     ],
-                    link: vec![],
-                    tags: vec![],
+                    tags: vec![String::from("c")],
                 }
             ],
             base_dir: PathBuf::from("examples"),
         };
-        let actual = parse_manifest_file(Path::new("examples/2.yml"));
+        let actual = parse_manifest_file(Path::new("examples/manifest.yml"));
         assert_eq!(actual, Ok(expected));
     }
 }
