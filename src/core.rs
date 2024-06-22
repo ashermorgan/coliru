@@ -46,7 +46,7 @@ fn execute_copies(copies: &[CopyLinkOptions], dry_run: bool) {
         print!("  Copy {} to {}", copy.src, copy.dst);
         if dry_run {
             println!(" (skipped due to --dry-run)");
-            return;
+            continue;
         }
         println!("");
 
@@ -62,7 +62,7 @@ fn execute_links(links: &[CopyLinkOptions], dry_run: bool) {
         print!("  Link {} to {}", link.src, link.dst);
         if dry_run {
             println!(" (skipped due to --dry-run)");
-            return;
+            continue;
         }
         println!("");
 
@@ -78,7 +78,7 @@ fn execute_runs(runs: &[RunOptions], dry_run: bool) {
         print!("  Run {}", run.src);
         if dry_run {
             println!(" (skipped due to --dry-run)");
-            return;
+            continue;
         }
         println!("");
 
