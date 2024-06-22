@@ -3,7 +3,7 @@ use std::io::Result;
 use std::fs;
 #[cfg(target_family = "unix")]
 use std::os::unix::fs::symlink;
-use std::path::PathBuf;
+use std::path::{PathBuf, absolute};
 use std::process::Command;
 
 
@@ -48,9 +48,9 @@ fn prepare_path(path: &str) -> Result<PathBuf> {
     Ok(_dst)
 }
 
-/// Execute a local shell script
+/// Execute a local shell script.
 ///
-/// Uses "sh -c" on Unix and is not yet implemented on Windows.
+/// Uses sh on Unix and PowerShell on Windows.
 pub fn run_script(path: &str) -> Result<()> {
     if cfg!(target_family = "unix") {
         Command::new("sh")
@@ -58,7 +58,12 @@ pub fn run_script(path: &str) -> Result<()> {
             .arg(fs::canonicalize(path)?)
             .status()?;
     } else {
-        unimplemented!();
+        // Use absolute() instead of canonicalize() to avoid incompatible paths:
+        // https://github.com/rust-lang/rust/issues/42869
+        Command::new("powershell")
+            .args(["-ExecutionPolicy", "Bypass", "-Command"])
+            .arg(absolute(path)?)
+            .status()?;
     }
     Ok(())
 }
