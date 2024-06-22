@@ -48,21 +48,21 @@ fn prepare_path(path: &str) -> Result<PathBuf> {
     Ok(_dst)
 }
 
-/// Execute a local shell script.
+/// Execute a local shell script, optionally with a command prefix.
 ///
 /// Uses sh on Unix and PowerShell on Windows.
-pub fn run_script(path: &str) -> Result<()> {
+pub fn run_script(path: &str, prefix: &str) -> Result<()> {
     if cfg!(target_family = "unix") {
         Command::new("sh")
             .arg("-c")
-            .arg(fs::canonicalize(path)?)
+            .arg(format!("{} {}", prefix, fs::canonicalize(path)?.display()))
             .status()?;
     } else {
         // Use absolute() instead of canonicalize() to avoid incompatible paths:
         // https://github.com/rust-lang/rust/issues/42869
         Command::new("powershell")
             .args(["-ExecutionPolicy", "Bypass", "-Command"])
-            .arg(absolute(path)?)
+            .arg(format!("{} {}", prefix, absolute(path)?.display()))
             .status()?;
     }
     Ok(())

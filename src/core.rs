@@ -82,7 +82,7 @@ fn execute_runs(runs: &[RunOptions], dry_run: bool) {
         }
         println!("");
 
-        if let Err(why) = run_script(&run.src) {
+        if let Err(why) = run_script(&run.src, &run.prefix) {
             eprintln!("    Error: {}", why);
         }
     }

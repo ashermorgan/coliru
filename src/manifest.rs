@@ -12,6 +12,9 @@ pub struct CopyLinkOptions {
 #[derive(Debug, PartialEq, Deserialize)]
 pub struct RunOptions {
     pub src: String,
+
+    #[serde(default)]
+    pub prefix: String,
 }
 
 #[derive(Debug, PartialEq, Deserialize)]
@@ -102,6 +105,7 @@ mod tests {
                     run: vec![
                         RunOptions {
                             src: String::from("baz"),
+                            prefix: String::from(""),
                         },
                     ],
                     tags: vec![String::from("c")],
