@@ -15,6 +15,9 @@ pub struct RunOptions {
 
     #[serde(default)]
     pub prefix: String,
+
+    #[serde(default)]
+    pub postfix: String,
 }
 
 #[derive(Debug, PartialEq, Deserialize)]
@@ -106,6 +109,7 @@ mod tests {
                         RunOptions {
                             src: String::from("baz"),
                             prefix: String::from(""),
+                            postfix: String::from("arg1 arg2 arg3"),
                         },
                     ],
                     tags: vec![String::from("c")],
