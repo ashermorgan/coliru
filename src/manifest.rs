@@ -51,7 +51,10 @@ pub fn parse_manifest_file(path: &Path) -> Result<Manifest, String> {
     let raw_str = read_to_string(path).map_err(|why| why.to_string())?;
     let raw_manifest = serde_yaml::from_str::<RawManifest>(&raw_str)
         .map_err(|why| why.to_string())?;
-    let base_dir = path.parent().or_else(|| Some(&Path::new("."))).unwrap();
+    let base_dir = match path.parent() {
+        None => &Path::new("."),
+        Some(p) => if p == Path::new("") { &Path::new(".") } else { p },
+    };
 
     Ok(Manifest {
         steps: raw_manifest.steps,
