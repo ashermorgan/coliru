@@ -23,67 +23,67 @@ fn execute_manifest(manifest: Manifest, tag_rules: Vec<String>, dry_run: bool,
     }
 
     for (i, step) in manifest.steps.iter().enumerate() {
-        print!("Step {}:", i+1);
-        if !tags_match(&tag_rules, &step.tags) {
-            println!(" (skipped due to tag rules)");
-            continue;
-        }
-        println!("");
+        if !tags_match(&tag_rules, &step.tags) { continue; }
 
-        execute_copies(&step.copy, dry_run);
+        let step_str = format!("[{}/{}]", i+1, manifest.steps.len());
+
+        execute_copies(&step.copy, dry_run, &step_str);
         if copy {
-            execute_copies(&step.link, dry_run);
+            execute_copies(&step.link, dry_run, &step_str);
         } else {
-            execute_links(&step.link, dry_run);
+            execute_links(&step.link, dry_run, &step_str);
         }
-        execute_runs(&step.run, dry_run);
+        execute_runs(&step.run, dry_run, &step_str);
     }
 }
 
 /// Execute the copy commands specified in a coliru manifest step
-fn execute_copies(copies: &[CopyLinkOptions], dry_run: bool) {
+fn execute_copies(copies: &[CopyLinkOptions], dry_run: bool, step_str: &str) {
     for copy in copies {
-        print!("  Copy {} to {}", copy.src, copy.dst);
+        print!("{} Copy {} to {}", step_str, copy.src, copy.dst);
+
         if dry_run {
-            println!(" (skipped due to --dry-run)");
+            println!(" (DRY RUN)");
             continue;
         }
         println!("");
 
         if let Err(why) = copy_file(&copy.src, &copy.dst) {
-            eprintln!("    Error: {}", why);
+            eprintln!("  Error: {}", why);
         }
     }
 }
 
 /// Execute the link commands specified in a coliru manifest step
-fn execute_links(links: &[CopyLinkOptions], dry_run: bool) {
+fn execute_links(links: &[CopyLinkOptions], dry_run: bool, step_str: &str) {
     for link in links {
-        print!("  Link {} to {}", link.src, link.dst);
+        print!("{} Link {} to {}", step_str, link.src, link.dst);
+
         if dry_run {
-            println!(" (skipped due to --dry-run)");
+            println!(" (DRY RUN)");
             continue;
         }
         println!("");
 
         if let Err(why) = link_file(&link.src, &link.dst) {
-            eprintln!("    Error: {}", why);
+            eprintln!("  Error: {}", why);
         }
     }
 }
 
 /// Execute the run commands specified in a coliru manifest step
-fn execute_runs(runs: &[RunOptions], dry_run: bool) {
+fn execute_runs(runs: &[RunOptions], dry_run: bool, step_str: &str) {
     for run in runs {
-        print!("  Run {}", run.src);
+        print!("{} Run {}", step_str, run.src);
+
         if dry_run {
-            println!(" (skipped due to --dry-run)");
+            println!(" (DRY RUN)");
             continue;
         }
         println!("");
 
         if let Err(why) = run_script(&run.src, &run.prefix, &run.postfix) {
-            eprintln!("    Error: {}", why);
+            eprintln!("  Error: {}", why);
         }
     }
 }
