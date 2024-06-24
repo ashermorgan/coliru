@@ -14,7 +14,7 @@ struct Args {
     #[arg(short, long, num_args=0..)]
     pub tag_rules: Vec<String>,
 
-    /// Copy files instead of creating links
+    /// Interpret link commands as copy commands
     #[arg(short, long)]
     pub copy: bool,
 
