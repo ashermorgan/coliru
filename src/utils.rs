@@ -33,7 +33,7 @@ pub fn link_file(src: &str, dst: &str) -> io::Result<()> {
     Ok(())
 }
 
-/// Create the parent directories of a path and return the path with tildes
+/// Creates the parent directories of a path and return the path with tildes
 /// expanded.
 fn prepare_path(path: &str) -> io::Result<PathBuf> {
     let _dst: PathBuf = (&tilde(path).to_mut()).into();
@@ -47,7 +47,7 @@ fn prepare_path(path: &str) -> io::Result<PathBuf> {
     Ok(_dst)
 }
 
-/// Execute a local shell script, optionally with a command prefix or postfix.
+/// Executes a local shell script, optionally with a command prefix or postfix.
 ///
 /// Uses sh on Unix and PowerShell on Windows.
 pub fn run_script(path: &str, prefix: &str, postfix: &str) -> Result<(), String>
@@ -84,22 +84,43 @@ mod tests {
     use std::io::Write;
     use std::path::Path;
 
-    // Adapted from ripgrep tests (crates/ignore/src/lib.rs)
-    struct TempDir(PathBuf);
+    /// Stores the path to a temporary directory that is automatically deleted
+    /// when the value is dropped.
+    ///
+    /// Adapted from ripgrep's tests (crates/ignore/src/lib.rs)
+    struct TempDir {
+        dir: PathBuf
+    }
     impl Drop for TempDir {
         fn drop(&mut self) {
-            fs::remove_dir_all(&self.0).unwrap();
+            fs::remove_dir_all(&self.dir).unwrap();
         }
     }
     impl TempDir {
-        // Will cause a panic if name has already been used
-        fn create(name: &str) -> TempDir {
-            let path = env::temp_dir().join("coliru-tests").join(name);
-            fs::create_dir_all(&path).unwrap();
-            TempDir(path)
+        fn new(name: &str) -> TempDir {
+            let dir = env::temp_dir().join("coliru-tests").join(name);
+            assert_eq!(dir.exists(), false);
+            fs::create_dir_all(&dir).unwrap();
+            TempDir { dir }
         }
     }
 
+    /// Creates a temporary directory with a certain name and sets $HOME and the
+    /// CWD to the parent directory.
+    ///
+    /// All tests in this module use the same values for $HOME and the CWD,
+    /// which prevents issues when tests are run in multiple threads.
+    fn setup(name: &str) -> TempDir {
+        let dir = TempDir::new(name);
+        let root = dir.dir.parent().unwrap();
+        env::set_current_dir(root).unwrap();
+        if cfg!(target_family = "unix") {
+            env::set_var("HOME", root);
+        }
+        dir
+    }
+
+    /// Create (or overwrite) a file with certain contents.
     fn create_file(path: &Path, contents: &str) {
         let mut file = fs::File::create(path).unwrap();
         file.write_all(contents.as_bytes()).unwrap();
@@ -107,10 +128,10 @@ mod tests {
 
     #[test]
     fn test_copy_file_create_dirs() {
-        let tmp = TempDir::create("test_copy_file_create_dirs");
+        let tmp = setup("test_copy_file_create_dirs");
 
-        let src = &tmp.0.join("foo");
-        let dst = &tmp.0.join("dir1").join("dir2").join("bar");
+        let src = &tmp.dir.join("foo");
+        let dst = &tmp.dir.join("dir1").join("dir2").join("bar");
         create_file(src, "old contents of foo");
 
         let result = copy_file(src.to_str().unwrap(), dst.to_str().unwrap());
@@ -123,10 +144,10 @@ mod tests {
 
     #[test]
     fn test_copy_file_existing_file() {
-        let tmp = TempDir::create("test_copy_file_existing_file");
+        let tmp = setup("test_copy_file_existing_file");
 
-        let src = &tmp.0.join("foo");
-        let dst = &tmp.0.join("bar");
+        let src = &tmp.dir.join("foo");
+        let dst = &tmp.dir.join("bar");
         create_file(src, "old contents of foo");
         create_file(dst, "old contents of bar");
 
@@ -141,10 +162,10 @@ mod tests {
     #[test]
     #[cfg(target_family = "unix")]
     fn test_copy_file_existing_broken_symlink() {
-        let tmp = TempDir::create("test_copy_file_existing_broken_symlink");
+        let tmp = setup("test_copy_file_existing_broken_symlink");
 
-        let src = &tmp.0.join("foo");
-        let dst = &tmp.0.join("bar");
+        let src = &tmp.dir.join("foo");
+        let dst = &tmp.dir.join("bar");
         create_file(src, "old contents of foo");
         symlink("missing", dst).unwrap();
 
@@ -159,14 +180,14 @@ mod tests {
     #[test]
     #[cfg(target_family = "unix")]
     fn test_copy_file_tilde_expansion() {
-        let tmp = TempDir::create("test_copy_file_tilde_expansion");
+        let tmp = setup("test_copy_file_tilde_expansion");
 
-        let src = &tmp.0.join("foo");
-        let dst = &tmp.0.join("dir1").join("dir2").join("bar");
+        let src = &tmp.dir.join("foo");
+        let dst = &tmp.dir.join("dir").join("bar");
+        let dst_tilde = "~/test_copy_file_tilde_expansion/dir/bar";
         create_file(src, "old contents of foo");
-        env::set_var("HOME", tmp.0.join("dir1").to_str().unwrap());
 
-        let result = copy_file(src.to_str().unwrap(), "~/dir2/bar");
+        let result = copy_file(src.to_str().unwrap(), dst_tilde);
 
         create_file(src, "new contents of foo");
         let contents = fs::read_to_string(dst).unwrap();
@@ -177,10 +198,10 @@ mod tests {
     #[test]
     #[cfg(target_family = "unix")]
     fn test_link_file_create_dirs() {
-        let tmp = TempDir::create("test_link_file_create_dirs");
+        let tmp = setup("test_link_file_create_dirs");
 
-        let src = &tmp.0.join("foo");
-        let dst = &tmp.0.join("dir1").join("dir2").join("bar");
+        let src = &tmp.dir.join("foo");
+        let dst = &tmp.dir.join("dir1").join("dir2").join("bar");
         create_file(src, "old contents of foo");
 
         let result = link_file(src.to_str().unwrap(), dst.to_str().unwrap());
@@ -194,10 +215,10 @@ mod tests {
     #[test]
     #[cfg(target_family = "unix")]
     fn test_link_file_existing_file() {
-        let tmp = TempDir::create("test_link_file_existing_file");
+        let tmp = setup("test_link_file_existing_file");
 
-        let src = &tmp.0.join("foo");
-        let dst = &tmp.0.join("bar");
+        let src = &tmp.dir.join("foo");
+        let dst = &tmp.dir.join("bar");
         create_file(src, "old contents of foo");
         create_file(dst, "old contents of bar");
 
@@ -212,10 +233,10 @@ mod tests {
     #[test]
     #[cfg(target_family = "unix")]
     fn test_link_file_existing_broken_symlink() {
-        let tmp = TempDir::create("test_link_file_existing_broken_symlink");
+        let tmp = setup("test_link_file_existing_broken_symlink");
 
-        let src = &tmp.0.join("foo");
-        let dst = &tmp.0.join("bar");
+        let src = &tmp.dir.join("foo");
+        let dst = &tmp.dir.join("bar");
         create_file(src, "old contents of foo");
         symlink("missing", dst).unwrap();
 
@@ -230,14 +251,14 @@ mod tests {
     #[test]
     #[cfg(target_family = "unix")]
     fn test_link_file_tilde_expansion() {
-        let tmp = TempDir::create("test_link_file_tilde_expansion");
+        let tmp = setup("test_link_file_tilde_expansion");
 
-        let src = &tmp.0.join("foo");
-        let dst = &tmp.0.join("dir1").join("dir2").join("bar");
+        let src = &tmp.dir.join("foo");
+        let dst = &tmp.dir.join("dir").join("bar");
+        let dst_tilde = "~/test_link_file_tilde_expansion/dir/bar";
         create_file(src, "old contents of foo");
-        env::set_var("HOME", tmp.0.join("dir1").to_str().unwrap());
 
-        let result = link_file(src.to_str().unwrap(), "~/dir2/bar");
+        let result = link_file(src.to_str().unwrap(), dst_tilde);
 
         create_file(src, "new contents of foo");
         let contents = fs::read_to_string(dst).unwrap();
@@ -247,10 +268,30 @@ mod tests {
 
     #[test]
     #[cfg(target_family = "unix")]
-    fn test_run_script_successful() {
-        let tmp = TempDir::create("test_run_script_successful");
+    fn test_link_file_relative_source() {
+        let tmp = setup("test_link_file_relative_source");
 
-        let src = &tmp.0.join("foo");
+        let src = &tmp.dir.join("foo");
+        let src_rel = "test_link_file_relative_source/foo";
+        let dst = &tmp.dir.join("dir1").join("dir2").join("bar");
+        create_file(src, "old contents of foo");
+
+        let result = link_file(src_rel, dst.to_str().unwrap());
+
+        create_file(src, "new contents of foo");
+        let contents = fs::read_to_string(dst).unwrap();
+        let link = fs::read_link(dst).unwrap();
+        assert_eq!(result.is_ok(), true);
+        assert_eq!(contents, "new contents of foo");
+        assert_eq!(&link, src); // src changed to absolute path
+    }
+
+    #[test]
+    #[cfg(target_family = "unix")]
+    fn test_run_script_successful() {
+        let tmp = setup("test_run_script_successful");
+
+        let src = &tmp.dir.join("foo");
         create_file(src, "exit 0");
 
         let result = run_script(src.to_str().unwrap(), "bash", "");
@@ -261,9 +302,9 @@ mod tests {
     #[test]
     #[cfg(target_family = "unix")]
     fn test_run_script_failure() {
-        let tmp = TempDir::create("test_run_script_failure");
+        let tmp = setup("test_run_script_failure");
 
-        let src = &tmp.0.join("foo");
+        let src = &tmp.dir.join("foo");
         create_file(src, "exit 2");
 
         let result = run_script(src.to_str().unwrap(), "bash", "");
@@ -275,10 +316,10 @@ mod tests {
     #[test]
     #[cfg(target_family = "unix")]
     fn test_run_script_postfix() {
-        let tmp = TempDir::create("test_run_script_postfix");
+        let tmp = setup("test_run_script_postfix");
 
-        let src = &tmp.0.join("foo");
-        let dst = &tmp.0.join("bar");
+        let src = &tmp.dir.join("foo");
+        let dst = &tmp.dir.join("bar");
         create_file(src, &format!("echo $@ > {}", dst.to_str().unwrap()));
 
         let result = run_script(src.to_str().unwrap(), "bash", "arg1 arg2");
