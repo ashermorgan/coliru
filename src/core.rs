@@ -33,7 +33,7 @@ fn execute_manifest(manifest: Manifest, tag_rules: Vec<String>, dry_run: bool,
         } else {
             execute_links(&step.link, dry_run, &step_str);
         }
-        execute_runs(&step.run, dry_run, &step_str);
+        execute_runs(&step.run, &tag_rules, dry_run, &step_str);
     }
 }
 
@@ -72,9 +72,12 @@ fn execute_links(links: &[CopyLinkOptions], dry_run: bool, step_str: &str) {
 }
 
 /// Execute the run commands specified in a coliru manifest step
-fn execute_runs(runs: &[RunOptions], dry_run: bool, step_str: &str) {
+fn execute_runs(runs: &[RunOptions], tag_rules: &[String], dry_run: bool,
+                step_str: &str) {
+
     for run in runs {
-        print!("{} Run {}", step_str, run.src);
+        let postfix = run.postfix.replace("$COLIRU_RULES", &tag_rules.join(" "));
+        print!("{} Run {} {} {}", step_str, run.prefix, run.src, postfix);
 
         if dry_run {
             println!(" (DRY RUN)");
@@ -82,7 +85,7 @@ fn execute_runs(runs: &[RunOptions], dry_run: bool, step_str: &str) {
         }
         println!("");
 
-        if let Err(why) = run_script(&run.src, &run.prefix, &run.postfix) {
+        if let Err(why) = run_script(&run.src, &run.prefix, &postfix) {
             eprintln!("  Error: {}", why);
         }
     }

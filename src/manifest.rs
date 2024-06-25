@@ -112,7 +112,7 @@ mod tests {
                         RunOptions {
                             src: String::from("baz"),
                             prefix: String::from(""),
-                            postfix: String::from("arg1 arg2 arg3"),
+                            postfix: String::from("arg1 $COLIRU_RULES arg2"),
                         },
                     ],
                     tags: vec![String::from("c")],

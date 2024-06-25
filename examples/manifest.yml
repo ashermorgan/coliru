@@ -13,5 +13,5 @@ steps:
 
   - run:
     - src: baz
-      postfix: arg1 arg2 arg3
+      postfix: arg1 $COLIRU_RULES arg2
     tags: [ c ]

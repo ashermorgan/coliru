@@ -27,12 +27,15 @@ Each manifest contains a series of steps that are executed to install the
     dotfiles.
 Each step contains an array of tags and any number of copy, link, or run
     commands.
+Each command is run from the directory containing the manifest file.
 The copy command copies a file from a source (`src`) to a (`dst`).
 The link command links a file from a source (`src`) to a (`dst`) using symbolic
     links on Unix platforms and hard links on Windows.
 Finally, the run command executes a script (`src`) from the command line, using
     `sh` on Unix platforms and `powershell` on Windows, with an optional
     `prefix` (e.g. `python3`) or `postfix` (e.g. `arg1 arg2 arg3`) string.
+Inside `postfix`, `$COLIRU_RULES` will be expanded into a space-delimited list
+    of the current tag rules.
 
 Example YAML manifest:
 
