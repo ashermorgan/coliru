@@ -75,3 +75,216 @@ pub fn run_script(path: &str, prefix: &str, postfix: &str) -> Result<(), String>
         Err(format!("Process exited with {status}"))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    use std::env;
+    use std::io::Write;
+    use std::path::Path;
+
+    // Adapted from ripgrep tests (crates/ignore/src/lib.rs)
+    struct TempDir(PathBuf);
+    impl Drop for TempDir {
+        fn drop(&mut self) {
+            fs::remove_dir_all(&self.0).unwrap();
+        }
+    }
+    impl TempDir {
+        // Will cause a panic if name has already been used
+        fn create(name: &str) -> TempDir {
+            let path = env::temp_dir().join("coliru-tests").join(name);
+            fs::create_dir_all(&path).unwrap();
+            TempDir(path)
+        }
+    }
+
+    fn create_file(path: &Path, contents: &str) {
+        let mut file = fs::File::create(path).unwrap();
+        file.write_all(contents.as_bytes()).unwrap();
+    }
+
+    #[test]
+    fn test_copy_file_create_dirs() {
+        let tmp = TempDir::create("test_copy_file_create_dirs");
+
+        let src = &tmp.0.join("foo");
+        let dst = &tmp.0.join("dir1").join("dir2").join("bar");
+        create_file(src, "old contents of foo");
+
+        let result = copy_file(src.to_str().unwrap(), dst.to_str().unwrap());
+
+        create_file(src, "new contents of foo");
+        let contents = fs::read_to_string(dst).unwrap();
+        assert_eq!(result.is_ok(), true);
+        assert_eq!(contents, "old contents of foo");
+    }
+
+    #[test]
+    fn test_copy_file_existing_file() {
+        let tmp = TempDir::create("test_copy_file_existing_file");
+
+        let src = &tmp.0.join("foo");
+        let dst = &tmp.0.join("bar");
+        create_file(src, "old contents of foo");
+        create_file(dst, "old contents of bar");
+
+        let result = copy_file(src.to_str().unwrap(), dst.to_str().unwrap());
+
+        create_file(src, "new contents of foo");
+        let contents = fs::read_to_string(dst).unwrap();
+        assert_eq!(result.is_ok(), true);
+        assert_eq!(contents, "old contents of foo");
+    }
+
+    #[test]
+    #[cfg(target_family = "unix")]
+    fn test_copy_file_existing_broken_symlink() {
+        let tmp = TempDir::create("test_copy_file_existing_broken_symlink");
+
+        let src = &tmp.0.join("foo");
+        let dst = &tmp.0.join("bar");
+        create_file(src, "old contents of foo");
+        symlink("missing", dst).unwrap();
+
+        let result = copy_file(src.to_str().unwrap(), dst.to_str().unwrap());
+
+        create_file(src, "new contents of foo");
+        let contents = fs::read_to_string(dst).unwrap();
+        assert_eq!(result.is_ok(), true);
+        assert_eq!(contents, "old contents of foo");
+    }
+
+    #[test]
+    #[cfg(target_family = "unix")]
+    fn test_copy_file_tilde_expansion() {
+        let tmp = TempDir::create("test_copy_file_tilde_expansion");
+
+        let src = &tmp.0.join("foo");
+        let dst = &tmp.0.join("dir1").join("dir2").join("bar");
+        create_file(src, "old contents of foo");
+        env::set_var("HOME", tmp.0.join("dir1").to_str().unwrap());
+
+        let result = copy_file(src.to_str().unwrap(), "~/dir2/bar");
+
+        create_file(src, "new contents of foo");
+        let contents = fs::read_to_string(dst).unwrap();
+        assert_eq!(result.is_ok(), true);
+        assert_eq!(contents, "old contents of foo");
+    }
+
+    #[test]
+    #[cfg(target_family = "unix")]
+    fn test_link_file_create_dirs() {
+        let tmp = TempDir::create("test_link_file_create_dirs");
+
+        let src = &tmp.0.join("foo");
+        let dst = &tmp.0.join("dir1").join("dir2").join("bar");
+        create_file(src, "old contents of foo");
+
+        let result = link_file(src.to_str().unwrap(), dst.to_str().unwrap());
+
+        create_file(src, "new contents of foo");
+        let contents = fs::read_to_string(dst).unwrap();
+        assert_eq!(result.is_ok(), true);
+        assert_eq!(contents, "new contents of foo");
+    }
+
+    #[test]
+    #[cfg(target_family = "unix")]
+    fn test_link_file_existing_file() {
+        let tmp = TempDir::create("test_link_file_existing_file");
+
+        let src = &tmp.0.join("foo");
+        let dst = &tmp.0.join("bar");
+        create_file(src, "old contents of foo");
+        create_file(dst, "old contents of bar");
+
+        let result = link_file(src.to_str().unwrap(), dst.to_str().unwrap());
+
+        create_file(src, "new contents of foo");
+        let contents = fs::read_to_string(dst).unwrap();
+        assert_eq!(result.is_ok(), true);
+        assert_eq!(contents, "new contents of foo");
+    }
+
+    #[test]
+    #[cfg(target_family = "unix")]
+    fn test_link_file_existing_broken_symlink() {
+        let tmp = TempDir::create("test_link_file_existing_broken_symlink");
+
+        let src = &tmp.0.join("foo");
+        let dst = &tmp.0.join("bar");
+        create_file(src, "old contents of foo");
+        symlink("missing", dst).unwrap();
+
+        let result = link_file(src.to_str().unwrap(), dst.to_str().unwrap());
+
+        create_file(src, "new contents of foo");
+        let contents = fs::read_to_string(dst).unwrap();
+        assert_eq!(result.is_ok(), true);
+        assert_eq!(contents, "new contents of foo");
+    }
+
+    #[test]
+    #[cfg(target_family = "unix")]
+    fn test_link_file_tilde_expansion() {
+        let tmp = TempDir::create("test_link_file_tilde_expansion");
+
+        let src = &tmp.0.join("foo");
+        let dst = &tmp.0.join("dir1").join("dir2").join("bar");
+        create_file(src, "old contents of foo");
+        env::set_var("HOME", tmp.0.join("dir1").to_str().unwrap());
+
+        let result = link_file(src.to_str().unwrap(), "~/dir2/bar");
+
+        create_file(src, "new contents of foo");
+        let contents = fs::read_to_string(dst).unwrap();
+        assert_eq!(result.is_ok(), true);
+        assert_eq!(contents, "new contents of foo");
+    }
+
+    #[test]
+    #[cfg(target_family = "unix")]
+    fn test_run_script_successful() {
+        let tmp = TempDir::create("test_run_script_successful");
+
+        let src = &tmp.0.join("foo");
+        create_file(src, "exit 0");
+
+        let result = run_script(src.to_str().unwrap(), "bash", "");
+
+        assert_eq!(result.is_ok(), true);
+    }
+
+    #[test]
+    #[cfg(target_family = "unix")]
+    fn test_run_script_failure() {
+        let tmp = TempDir::create("test_run_script_failure");
+
+        let src = &tmp.0.join("foo");
+        create_file(src, "exit 2");
+
+        let result = run_script(src.to_str().unwrap(), "bash", "");
+
+        assert_eq!(result.is_ok(), false);
+        assert_eq!(result.unwrap_err(), "Process exited with exit status: 2");
+    }
+
+    #[test]
+    #[cfg(target_family = "unix")]
+    fn test_run_script_postfix() {
+        let tmp = TempDir::create("test_run_script_postfix");
+
+        let src = &tmp.0.join("foo");
+        let dst = &tmp.0.join("bar");
+        create_file(src, &format!("echo $@ > {}", dst.to_str().unwrap()));
+
+        let result = run_script(src.to_str().unwrap(), "bash", "arg1 arg2");
+
+        let contents = fs::read_to_string(dst).unwrap();
+        assert_eq!(result.is_ok(), true);
+        assert_eq!(contents, "arg1 arg2\n");
+    }
+}
