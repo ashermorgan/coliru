@@ -50,6 +50,11 @@ pub fn write_file(path: &Path, contents: &str) {
     file.write_all(contents.as_bytes()).unwrap();
 }
 
+/// Reads the contents of a file into a string.
+pub fn read_file(path: &Path) -> String {
+    fs::read_to_string(path).unwrap()
+}
+
 /// Returns the stdout of a command as a String.
 pub fn stdout_to_string(cmd: &mut Command) -> String {
     String::from_utf8_lossy(&cmd.output().unwrap().stdout).into_owned()

@@ -1,0 +1,25 @@
+# Identical to manifest.yml, but uses relative paths instead of paths with
+# tildes becuase $HOME is difficult to mock on windows.
+
+steps:
+  - copy:
+    - src: gitconfig
+      dst: .gitconfig.coliru
+    tags: [ windows, linux, macos ]
+
+  - link:
+    - src: vimrc
+      dst: .vimrc.coliru # Will create symbolic link on Linux & MacOS
+    run:
+    - src: script.sh
+      prefix: sh # unecessary on Unix if script.sh is executable
+      postfix: arg1 $COLIRU_RULES
+    tags: [ linux, macos ]
+
+  - link:
+    - src: vimrc
+      dst: _vimrc.coliru # Will create hard link on Windows
+    run:
+    - src: script.bat
+      postfix: arg1 $COLIRU_RULES
+    tags: [ windows ]

@@ -67,7 +67,7 @@ mod tests {
     use super::*;
 
     #[test]
-    #[cfg(target_os = "linux")]
+    #[cfg(target_family = "unix")]
     fn parse_manifest_file_missing() {
         let expected = "No such file or directory (os error 2)";
         let actual = parse_manifest_file(Path::new("examples/missing.yml"));
@@ -75,10 +75,19 @@ mod tests {
     }
 
     #[test]
+    #[cfg(target_family = "windows")]
+    fn parse_manifest_file_missing() {
+        let exp = "The system cannot find the file specified. (os error 2)";
+        let actual = parse_manifest_file(Path::new("examples/missing.yml"));
+        assert_eq!(actual, Err(String::from(exp)));
+    }
+
+    #[test]
     fn parse_manifest_file_invalid() {
-        let expected = "steps[0].copy[0]: missing field `src` at line 5 column 7";
-        let actual = parse_manifest_file(Path::new("examples/manifest-invalid.yml"));
-        assert_eq!(actual, Err(String::from(expected)));
+        let path = Path::new("examples/manifest-invalid.yml");
+        let exp = "steps[0].copy[0]: missing field `src` at line 5 column 7";
+        let actual = parse_manifest_file(path);
+        assert_eq!(actual, Err(String::from(exp)));
     }
 
     #[test]

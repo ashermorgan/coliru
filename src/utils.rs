@@ -196,7 +196,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(target_family = "unix")]
     fn test_link_file_create_dirs() {
         let tmp = setup("test_link_file_create_dirs");
 
@@ -213,7 +212,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(target_family = "unix")]
     fn test_link_file_existing_file() {
         let tmp = setup("test_link_file_existing_file");
 
@@ -294,7 +292,20 @@ mod tests {
         let src = &tmp.dir.join("foo");
         write_file(src, "exit 0");
 
-        let result = run_script(src.to_str().unwrap(), "bash", "");
+        let result = run_script(src.to_str().unwrap(), "sh", "");
+
+        assert_eq!(result.is_ok(), true);
+    }
+
+    #[test]
+    #[cfg(target_family = "windows")]
+    fn test_run_script_successful() {
+        let tmp = setup("test_run_script_successful");
+
+        let src = &tmp.dir.join("foo.bat");
+        write_file(src, "exit 0");
+
+        let result = run_script(src.to_str().unwrap(), "", "");
 
         assert_eq!(result.is_ok(), true);
     }
@@ -307,10 +318,24 @@ mod tests {
         let src = &tmp.dir.join("foo");
         write_file(src, "exit 2");
 
-        let result = run_script(src.to_str().unwrap(), "bash", "");
+        let result = run_script(src.to_str().unwrap(), "sh", "");
 
         assert_eq!(result.is_ok(), false);
         assert_eq!(result.unwrap_err(), "Process exited with exit status: 2");
+    }
+
+    #[test]
+    #[cfg(target_family = "windows")]
+    fn test_run_script_failure() {
+        let tmp = setup("test_run_script_failure");
+
+        let src = &tmp.dir.join("foo.bat");
+        write_file(src, "exit 1");
+
+        let result = run_script(src.to_str().unwrap(), "", "");
+
+        assert_eq!(result.is_ok(), false);
+        assert_eq!(result.unwrap_err(), "Process exited with exit code: 1");
     }
 
     #[test]
@@ -322,10 +347,26 @@ mod tests {
         let dst = &tmp.dir.join("bar");
         write_file(src, &format!("echo $@ > {}", dst.to_str().unwrap()));
 
-        let result = run_script(src.to_str().unwrap(), "bash", "arg1 arg2");
+        let result = run_script(src.to_str().unwrap(), "sh", "arg1 arg2");
 
         let contents = fs::read_to_string(dst).unwrap();
         assert_eq!(result.is_ok(), true);
         assert_eq!(contents, "arg1 arg2\n");
+    }
+
+    #[test]
+    #[cfg(target_family = "windows")]
+    fn test_run_script_postfix() {
+        let tmp = setup("test_run_script_postfix");
+
+        let src = &tmp.dir.join("foo.bat");
+        let dst = &tmp.dir.join("bar");
+        write_file(src, &format!("echo %* > {}", dst.to_str().unwrap()));
+
+        let result = run_script(src.to_str().unwrap(), "", "arg1 arg2");
+
+        let contents = fs::read_to_string(dst).unwrap();
+        assert_eq!(result.is_ok(), true);
+        assert_eq!(contents, "arg1 arg2 \r\n");
     }
 }
