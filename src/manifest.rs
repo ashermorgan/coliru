@@ -66,8 +66,8 @@ pub fn parse_manifest_file(path: &Path) -> Result<Manifest, String> {
 mod tests {
     use super::*;
 
-    #[cfg(target_os = "linux")]
     #[test]
+    #[cfg(target_os = "linux")]
     fn parse_manifest_file_missing() {
         let expected = "No such file or directory (os error 2)";
         let actual = parse_manifest_file(Path::new("examples/missing.yml"));
@@ -76,8 +76,8 @@ mod tests {
 
     #[test]
     fn parse_manifest_file_invalid() {
-        let expected = "steps[1].copy[0]: missing field `src` at line 12 column 7";
-        let actual = parse_manifest_file(Path::new("examples/invalid.yml"));
+        let expected = "steps[0].copy[0]: missing field `src` at line 5 column 7";
+        let actual = parse_manifest_file(Path::new("examples/manifest-invalid.yml"));
         assert_eq!(actual, Err(String::from(expected)));
     }
 
@@ -88,35 +88,52 @@ mod tests {
                 Step {
                     copy: vec![
                         CopyLinkOptions {
-                            src: String::from("foo"),
-                            dst: String::from("/foo"),
+                            src: String::from("gitconfig"),
+                            dst: String::from("~/.gitconfig.coliru"),
                         },
                     ],
-                    link: vec![
-                        CopyLinkOptions {
-                            src: String::from("foo"),
-                            dst: String::from("~/foo"),
-                        },
-                        CopyLinkOptions {
-                            src: String::from("bar"),
-                            dst: String::from("~/test/bar"),
-                        },
-                    ],
+                    link: vec![],
                     run: vec![],
-                    tags: vec![String::from("a"), String::from("b")],
+                    tags: vec![
+                        String::from("windows"),
+                        String::from("linux"),
+                        String::from("macos")
+                    ],
                 },
                 Step {
                     copy: vec![],
-                    link: vec![],
-                    run: vec![
-                        RunOptions {
-                            src: String::from("baz"),
-                            prefix: String::from(""),
-                            postfix: String::from("arg1 $COLIRU_RULES arg2"),
+                    link: vec![
+                        CopyLinkOptions {
+                            src: String::from("vimrc"),
+                            dst: String::from("~/.vimrc.coliru"),
                         },
                     ],
-                    tags: vec![String::from("c")],
-                }
+                    run: vec![
+                        RunOptions {
+                            src: String::from("script.sh"),
+                            prefix: String::from("sh"),
+                            postfix: String::from("arg1 $COLIRU_RULES"),
+                        },
+                    ],
+                    tags: vec![String::from("linux"), String::from("macos")],
+                },
+                Step {
+                    copy: vec![],
+                    link: vec![
+                        CopyLinkOptions {
+                            src: String::from("vimrc"),
+                            dst: String::from("~/_vimrc.coliru"),
+                        },
+                    ],
+                    run: vec![
+                        RunOptions {
+                            src: String::from("script.bat"),
+                            prefix: String::from(""),
+                            postfix: String::from("arg1 $COLIRU_RULES"),
+                        },
+                    ],
+                    tags: vec![String::from("windows")],
+                },
             ],
             base_dir: PathBuf::from("examples"),
         };

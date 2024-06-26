@@ -1,0 +1,5 @@
+" A basic vim config:
+set hlsearch
+set incsearch
+set number
+syntax enable

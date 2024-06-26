@@ -1,0 +1,7 @@
+# Invalid manifest
+
+steps:
+  - copy:
+    - not_src: foo
+      dst: /foo
+    tags: [ b, c ]

@@ -1,17 +1,36 @@
-# Valid manifest
+# Dotfile repo structure:
+# .
+# ├── gitconfig
+# ├── script.bat
+# ├── script.sh
+# ├── manifest.yml
+# └── vimrc
+
+# For testing purposes, all files are given the .coliru suffix so they won't
+# overwrite existing dotfiles. The .vimrc file is linked to its destination so
+# that changes are synced with the dotfile repo. In contrast, the .gitconfig
+# file is only copied so that the name & email fields can be modified without
+# changing the version in the dotfile repo.
 
 steps:
   - copy:
-    - src: foo
-      dst: /foo
-    link:
-    - src: foo
-      dst: ~/foo
-    - src: bar
-      dst: ~/test/bar
-    tags: [ a, b ]
+    - src: gitconfig
+      dst: ~/.gitconfig.coliru
+    tags: [ windows, linux, macos ]
 
-  - run:
-    - src: baz
-      postfix: arg1 $COLIRU_RULES arg2
-    tags: [ c ]
+  - link:
+    - src: vimrc
+      dst: ~/.vimrc.coliru # Will create symbolic link on Linux & MacOS
+    run:
+    - src: script.sh
+      prefix: sh # unecessary on Unix if script.sh is executable
+      postfix: arg1 $COLIRU_RULES
+    tags: [ linux, macos ]
+
+  - link:
+    - src: vimrc
+      dst: ~/_vimrc.coliru # Will create hard link on Windows
+    run:
+    - src: script.bat
+      postfix: arg1 $COLIRU_RULES
+    tags: [ windows ]
