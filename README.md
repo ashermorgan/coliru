@@ -47,11 +47,11 @@ steps:
     link:
     - src: vim_dotfiles/.vimrc
       dst: ~/.vimrc
-    tags: [ windows, linux, macos ]
+    tags: [ linux, macos ]
   - run:
     - src: install_programs.sh
       prefix: bash # Unecessary if install_programs.sh is executable
-      postfix: -y
+      postfix: $COLIRU_RULES -y
     tags: [ linux ]
 ```
 

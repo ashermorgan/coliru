@@ -120,8 +120,8 @@ mod tests {
         dir
     }
 
-    /// Create (or overwrite) a file with certain contents.
-    fn create_file(path: &Path, contents: &str) {
+    /// Writes a string to a file, overwriting it if it already exists.
+    fn write_file(path: &Path, contents: &str) {
         let mut file = fs::File::create(path).unwrap();
         file.write_all(contents.as_bytes()).unwrap();
     }
@@ -132,11 +132,11 @@ mod tests {
 
         let src = &tmp.dir.join("foo");
         let dst = &tmp.dir.join("dir1").join("dir2").join("bar");
-        create_file(src, "old contents of foo");
+        write_file(src, "old contents of foo");
 
         let result = copy_file(src.to_str().unwrap(), dst.to_str().unwrap());
 
-        create_file(src, "new contents of foo");
+        write_file(src, "new contents of foo");
         let contents = fs::read_to_string(dst).unwrap();
         assert_eq!(result.is_ok(), true);
         assert_eq!(contents, "old contents of foo");
@@ -148,12 +148,12 @@ mod tests {
 
         let src = &tmp.dir.join("foo");
         let dst = &tmp.dir.join("bar");
-        create_file(src, "old contents of foo");
-        create_file(dst, "old contents of bar");
+        write_file(src, "old contents of foo");
+        write_file(dst, "old contents of bar");
 
         let result = copy_file(src.to_str().unwrap(), dst.to_str().unwrap());
 
-        create_file(src, "new contents of foo");
+        write_file(src, "new contents of foo");
         let contents = fs::read_to_string(dst).unwrap();
         assert_eq!(result.is_ok(), true);
         assert_eq!(contents, "old contents of foo");
@@ -166,12 +166,12 @@ mod tests {
 
         let src = &tmp.dir.join("foo");
         let dst = &tmp.dir.join("bar");
-        create_file(src, "old contents of foo");
+        write_file(src, "old contents of foo");
         symlink("missing", dst).unwrap();
 
         let result = copy_file(src.to_str().unwrap(), dst.to_str().unwrap());
 
-        create_file(src, "new contents of foo");
+        write_file(src, "new contents of foo");
         let contents = fs::read_to_string(dst).unwrap();
         assert_eq!(result.is_ok(), true);
         assert_eq!(contents, "old contents of foo");
@@ -185,11 +185,11 @@ mod tests {
         let src = &tmp.dir.join("foo");
         let dst = &tmp.dir.join("dir").join("bar");
         let dst_tilde = "~/test_copy_file_tilde_expansion/dir/bar";
-        create_file(src, "old contents of foo");
+        write_file(src, "old contents of foo");
 
         let result = copy_file(src.to_str().unwrap(), dst_tilde);
 
-        create_file(src, "new contents of foo");
+        write_file(src, "new contents of foo");
         let contents = fs::read_to_string(dst).unwrap();
         assert_eq!(result.is_ok(), true);
         assert_eq!(contents, "old contents of foo");
@@ -202,11 +202,11 @@ mod tests {
 
         let src = &tmp.dir.join("foo");
         let dst = &tmp.dir.join("dir1").join("dir2").join("bar");
-        create_file(src, "old contents of foo");
+        write_file(src, "old contents of foo");
 
         let result = link_file(src.to_str().unwrap(), dst.to_str().unwrap());
 
-        create_file(src, "new contents of foo");
+        write_file(src, "new contents of foo");
         let contents = fs::read_to_string(dst).unwrap();
         assert_eq!(result.is_ok(), true);
         assert_eq!(contents, "new contents of foo");
@@ -219,12 +219,12 @@ mod tests {
 
         let src = &tmp.dir.join("foo");
         let dst = &tmp.dir.join("bar");
-        create_file(src, "old contents of foo");
-        create_file(dst, "old contents of bar");
+        write_file(src, "old contents of foo");
+        write_file(dst, "old contents of bar");
 
         let result = link_file(src.to_str().unwrap(), dst.to_str().unwrap());
 
-        create_file(src, "new contents of foo");
+        write_file(src, "new contents of foo");
         let contents = fs::read_to_string(dst).unwrap();
         assert_eq!(result.is_ok(), true);
         assert_eq!(contents, "new contents of foo");
@@ -237,12 +237,12 @@ mod tests {
 
         let src = &tmp.dir.join("foo");
         let dst = &tmp.dir.join("bar");
-        create_file(src, "old contents of foo");
+        write_file(src, "old contents of foo");
         symlink("missing", dst).unwrap();
 
         let result = link_file(src.to_str().unwrap(), dst.to_str().unwrap());
 
-        create_file(src, "new contents of foo");
+        write_file(src, "new contents of foo");
         let contents = fs::read_to_string(dst).unwrap();
         assert_eq!(result.is_ok(), true);
         assert_eq!(contents, "new contents of foo");
@@ -256,11 +256,11 @@ mod tests {
         let src = &tmp.dir.join("foo");
         let dst = &tmp.dir.join("dir").join("bar");
         let dst_tilde = "~/test_link_file_tilde_expansion/dir/bar";
-        create_file(src, "old contents of foo");
+        write_file(src, "old contents of foo");
 
         let result = link_file(src.to_str().unwrap(), dst_tilde);
 
-        create_file(src, "new contents of foo");
+        write_file(src, "new contents of foo");
         let contents = fs::read_to_string(dst).unwrap();
         assert_eq!(result.is_ok(), true);
         assert_eq!(contents, "new contents of foo");
@@ -274,11 +274,11 @@ mod tests {
         let src = &tmp.dir.join("foo");
         let src_rel = "test_link_file_relative_source/foo";
         let dst = &tmp.dir.join("dir1").join("dir2").join("bar");
-        create_file(src, "old contents of foo");
+        write_file(src, "old contents of foo");
 
         let result = link_file(src_rel, dst.to_str().unwrap());
 
-        create_file(src, "new contents of foo");
+        write_file(src, "new contents of foo");
         let contents = fs::read_to_string(dst).unwrap();
         let link = fs::read_link(dst).unwrap();
         assert_eq!(result.is_ok(), true);
@@ -292,7 +292,7 @@ mod tests {
         let tmp = setup("test_run_script_successful");
 
         let src = &tmp.dir.join("foo");
-        create_file(src, "exit 0");
+        write_file(src, "exit 0");
 
         let result = run_script(src.to_str().unwrap(), "bash", "");
 
@@ -305,7 +305,7 @@ mod tests {
         let tmp = setup("test_run_script_failure");
 
         let src = &tmp.dir.join("foo");
-        create_file(src, "exit 2");
+        write_file(src, "exit 2");
 
         let result = run_script(src.to_str().unwrap(), "bash", "");
 
@@ -320,7 +320,7 @@ mod tests {
 
         let src = &tmp.dir.join("foo");
         let dst = &tmp.dir.join("bar");
-        create_file(src, &format!("echo $@ > {}", dst.to_str().unwrap()));
+        write_file(src, &format!("echo $@ > {}", dst.to_str().unwrap()));
 
         let result = run_script(src.to_str().unwrap(), "bash", "arg1 arg2");
 

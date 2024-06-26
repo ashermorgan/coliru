@@ -1,6 +1,7 @@
 use std::env;
 use std::fs;
-use std::path::PathBuf;
+use std::io::Write;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 
 /// Stores the path to a temporary directory that is automatically deleted
@@ -8,7 +9,7 @@ use std::process::Command;
 ///
 /// Adapted from ripgrep's tests (crates/ignore/src/lib.rs)
 pub struct TempDir {
-    dir: PathBuf
+    pub dir: PathBuf
 }
 impl Drop for TempDir {
     fn drop(&mut self) {
@@ -43,7 +44,18 @@ pub fn setup(name: &str) -> (TempDir, Command) {
     (dir, cmd)
 }
 
+/// Writes a string to a file, overwriting it if it already exists.
+pub fn write_file(path: &Path, contents: &str) {
+    let mut file = fs::File::create(path).unwrap();
+    file.write_all(contents.as_bytes()).unwrap();
+}
+
 /// Returns the stdout of a command as a String.
-pub fn get_output(cmd: &mut Command) -> String {
+pub fn stdout_to_string(cmd: &mut Command) -> String {
     String::from_utf8_lossy(&cmd.output().unwrap().stdout).into_owned()
+}
+
+/// Returns the stderr of a command as a String.
+pub fn stderr_to_string(cmd: &mut Command) -> String {
+    String::from_utf8_lossy(&cmd.output().unwrap().stderr).into_owned()
 }
