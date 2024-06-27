@@ -77,58 +77,17 @@ pub fn run_script(path: &str, prefix: &str, postfix: &str) -> Result<(), String>
 }
 
 #[cfg(test)]
+#[path = "../tests/common/mod.rs"]
+mod common;
+
+#[cfg(test)]
 mod tests {
     use super::*;
-
-    use std::env;
-    use std::io::Write;
-    use std::path::Path;
-
-    /// Stores the path to a temporary directory that is automatically deleted
-    /// when the value is dropped.
-    ///
-    /// Adapted from ripgrep's tests (crates/ignore/src/lib.rs)
-    struct TempDir {
-        dir: PathBuf
-    }
-    impl Drop for TempDir {
-        fn drop(&mut self) {
-            fs::remove_dir_all(&self.dir).unwrap();
-        }
-    }
-    impl TempDir {
-        fn new(name: &str) -> TempDir {
-            let dir = env::temp_dir().join("coliru-tests").join(name);
-            assert_eq!(dir.exists(), false);
-            fs::create_dir_all(&dir).unwrap();
-            TempDir { dir }
-        }
-    }
-
-    /// Creates a temporary directory with a certain name and sets $HOME and the
-    /// CWD to the parent directory.
-    ///
-    /// All tests in this module use the same values for $HOME and the CWD,
-    /// which prevents issues when tests are run in multiple threads.
-    fn setup(name: &str) -> TempDir {
-        let dir = TempDir::new(name);
-        let root = dir.dir.parent().unwrap();
-        env::set_current_dir(root).unwrap();
-        if cfg!(target_family = "unix") {
-            env::set_var("HOME", root);
-        }
-        dir
-    }
-
-    /// Writes a string to a file, overwriting it if it already exists.
-    fn write_file(path: &Path, contents: &str) {
-        let mut file = fs::File::create(path).unwrap();
-        file.write_all(contents.as_bytes()).unwrap();
-    }
+    use common::{setup_integration, write_file};
 
     #[test]
     fn test_copy_file_create_dirs() {
-        let tmp = setup("test_copy_file_create_dirs");
+        let tmp = setup_integration("test_copy_file_create_dirs");
 
         let src = &tmp.dir.join("foo");
         let dst = &tmp.dir.join("dir1").join("dir2").join("bar");
@@ -144,7 +103,7 @@ mod tests {
 
     #[test]
     fn test_copy_file_existing_file() {
-        let tmp = setup("test_copy_file_existing_file");
+        let tmp = setup_integration("test_copy_file_existing_file");
 
         let src = &tmp.dir.join("foo");
         let dst = &tmp.dir.join("bar");
@@ -162,7 +121,7 @@ mod tests {
     #[test]
     #[cfg(target_family = "unix")]
     fn test_copy_file_existing_broken_symlink() {
-        let tmp = setup("test_copy_file_existing_broken_symlink");
+        let tmp = setup_integration("test_copy_file_existing_broken_symlink");
 
         let src = &tmp.dir.join("foo");
         let dst = &tmp.dir.join("bar");
@@ -180,7 +139,7 @@ mod tests {
     #[test]
     #[cfg(target_family = "unix")]
     fn test_copy_file_tilde_expansion() {
-        let tmp = setup("test_copy_file_tilde_expansion");
+        let tmp = setup_integration("test_copy_file_tilde_expansion");
 
         let src = &tmp.dir.join("foo");
         let dst = &tmp.dir.join("dir").join("bar");
@@ -197,7 +156,7 @@ mod tests {
 
     #[test]
     fn test_link_file_create_dirs() {
-        let tmp = setup("test_link_file_create_dirs");
+        let tmp = setup_integration("test_link_file_create_dirs");
 
         let src = &tmp.dir.join("foo");
         let dst = &tmp.dir.join("dir1").join("dir2").join("bar");
@@ -213,7 +172,7 @@ mod tests {
 
     #[test]
     fn test_link_file_existing_file() {
-        let tmp = setup("test_link_file_existing_file");
+        let tmp = setup_integration("test_link_file_existing_file");
 
         let src = &tmp.dir.join("foo");
         let dst = &tmp.dir.join("bar");
@@ -231,7 +190,7 @@ mod tests {
     #[test]
     #[cfg(target_family = "unix")]
     fn test_link_file_existing_broken_symlink() {
-        let tmp = setup("test_link_file_existing_broken_symlink");
+        let tmp = setup_integration("test_link_file_existing_broken_symlink");
 
         let src = &tmp.dir.join("foo");
         let dst = &tmp.dir.join("bar");
@@ -249,7 +208,7 @@ mod tests {
     #[test]
     #[cfg(target_family = "unix")]
     fn test_link_file_tilde_expansion() {
-        let tmp = setup("test_link_file_tilde_expansion");
+        let tmp = setup_integration("test_link_file_tilde_expansion");
 
         let src = &tmp.dir.join("foo");
         let dst = &tmp.dir.join("dir").join("bar");
@@ -267,7 +226,7 @@ mod tests {
     #[test]
     #[cfg(target_family = "unix")]
     fn test_link_file_relative_source() {
-        let tmp = setup("test_link_file_relative_source");
+        let tmp = setup_integration("test_link_file_relative_source");
 
         let src = &tmp.dir.join("foo");
         let src_rel = "test_link_file_relative_source/foo";
@@ -287,7 +246,7 @@ mod tests {
     #[test]
     #[cfg(target_family = "unix")]
     fn test_run_script_successful() {
-        let tmp = setup("test_run_script_successful");
+        let tmp = setup_integration("test_run_script_successful");
 
         let src = &tmp.dir.join("foo");
         write_file(src, "exit 0");
@@ -300,7 +259,7 @@ mod tests {
     #[test]
     #[cfg(target_family = "windows")]
     fn test_run_script_successful() {
-        let tmp = setup("test_run_script_successful");
+        let tmp = setup_integration("test_run_script_successful");
 
         let src = &tmp.dir.join("foo.bat");
         write_file(src, "exit 0");
@@ -313,7 +272,7 @@ mod tests {
     #[test]
     #[cfg(target_family = "unix")]
     fn test_run_script_failure() {
-        let tmp = setup("test_run_script_failure");
+        let tmp = setup_integration("test_run_script_failure");
 
         let src = &tmp.dir.join("foo");
         write_file(src, "exit 2");
@@ -327,7 +286,7 @@ mod tests {
     #[test]
     #[cfg(target_family = "windows")]
     fn test_run_script_failure() {
-        let tmp = setup("test_run_script_failure");
+        let tmp = setup_integration("test_run_script_failure");
 
         let src = &tmp.dir.join("foo.bat");
         write_file(src, "exit 1");
@@ -341,7 +300,7 @@ mod tests {
     #[test]
     #[cfg(target_family = "unix")]
     fn test_run_script_postfix() {
-        let tmp = setup("test_run_script_postfix");
+        let tmp = setup_integration("test_run_script_postfix");
 
         let src = &tmp.dir.join("foo");
         let dst = &tmp.dir.join("bar");
@@ -357,7 +316,7 @@ mod tests {
     #[test]
     #[cfg(target_family = "windows")]
     fn test_run_script_postfix() {
-        let tmp = setup("test_run_script_postfix");
+        let tmp = setup_integration("test_run_script_postfix");
 
         let src = &tmp.dir.join("foo.bat");
         let dst = &tmp.dir.join("bar");

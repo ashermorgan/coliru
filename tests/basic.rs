@@ -26,7 +26,7 @@ fn manifest_1(dir: &Path) {
 
 #[test]
 fn test_help() {
-    let (_dir, mut cmd) = setup("test_help");
+    let (_dir, mut cmd) = setup_e2e("test_help");
     cmd.arg("--help");
     let expected = format!("\
 A minimal, flexible, dotfile installer
@@ -50,7 +50,7 @@ Options:
 #[test]
 #[cfg(target_family = "unix")]
 fn test_standard() {
-    let (dir, mut cmd) = setup("test_standard");
+    let (dir, mut cmd) = setup_e2e("test_standard");
     cmd.args(["manifest.yml", "-t", "linux"]);
     manifest_1(&dir.dir);
 
@@ -79,7 +79,7 @@ script.sh called with arg1 linux
 #[test]
 #[cfg(target_family = "windows")]
 fn test_standard() {
-    let (dir, mut cmd) = setup("test_standard");
+    let (dir, mut cmd) = setup_e2e("test_standard");
     cmd.args(["manifest-windows-test.yml", "-t", "windows"]);
     manifest_1(&dir.dir);
 
@@ -108,7 +108,7 @@ script.bat called with arg1 windows\r
 #[test]
 #[cfg(target_family = "unix")]
 fn test_run_alternate_tag_rules_1() {
-    let (dir, mut cmd) = setup("test_run_alternate_tag_rules_1");
+    let (dir, mut cmd) = setup_e2e("test_run_alternate_tag_rules_1");
     cmd.args(["manifest.yml", "-t", "linux", "^windows"]);
     manifest_1(&dir.dir);
 
@@ -135,7 +135,7 @@ script.sh called with arg1 linux ^windows
 #[test]
 #[cfg(target_family = "unix")]
 fn test_run_alternate_tag_rules_2() {
-    let (dir, mut cmd) = setup("test_run_alternate_tag_rules_2");
+    let (dir, mut cmd) = setup_e2e("test_run_alternate_tag_rules_2");
     cmd.args(["manifest.yml", "-t", "macos"]);
     manifest_1(&dir.dir);
 
@@ -163,7 +163,7 @@ script.sh called with arg1 macos
 
 #[test]
 fn test_dry_run() {
-    let (dir, mut cmd) = setup("test_dry_run");
+    let (dir, mut cmd) = setup_e2e("test_dry_run");
     cmd.args(["manifest.yml", "--dry-run", "-t", "linux"]);
     manifest_1(&dir.dir);
 
@@ -189,7 +189,7 @@ fn test_dry_run() {
 #[test]
 #[cfg(target_family = "unix")]
 fn test_copy() {
-    let (dir, mut cmd) = setup("test_copy");
+    let (dir, mut cmd) = setup_e2e("test_copy");
     cmd.args(["manifest.yml", "--copy", "-t", "linux"]);
     manifest_1(&dir.dir);
 
@@ -218,7 +218,7 @@ script.sh called with arg1 linux
 #[test]
 #[cfg(target_family = "windows")]
 fn test_copy() {
-    let (dir, mut cmd) = setup("test_copy");
+    let (dir, mut cmd) = setup_e2e("test_copy");
     cmd.args(["manifest-windows-test.yml", "--copy", "-t", "windows"]);
     manifest_1(&dir.dir);
 
@@ -247,7 +247,7 @@ script.bat called with arg1 windows\r
 #[test]
 #[cfg(target_family = "unix")]
 fn test_run_failure() {
-    let (dir, mut cmd) = setup("test_run_failure");
+    let (dir, mut cmd) = setup_e2e("test_run_failure");
     cmd.args(["manifest.yml", "-t", "linux"]);
     manifest_1(&dir.dir);
     write_file(&dir.dir.join("script.sh"), "exit 1");
@@ -275,7 +275,7 @@ fn test_run_failure() {
 #[test]
 #[cfg(target_family = "windows")]
 fn test_run_failure() {
-    let (dir, mut cmd) = setup("test_run_failure");
+    let (dir, mut cmd) = setup_e2e("test_run_failure");
     cmd.args(["manifest-windows-test.yml", "-t", "windows"]);
     manifest_1(&dir.dir);
     write_file(&dir.dir.join("script.bat"), "@echo off\r\nexit 1");
@@ -303,7 +303,7 @@ fn test_run_failure() {
 #[test]
 #[cfg(target_family = "unix")]
 fn test_missing_file() {
-    let (dir, mut cmd) = setup("test_missing_file");
+    let (dir, mut cmd) = setup_e2e("test_missing_file");
     cmd.args(["manifest.yml", "-t", "linux"]);
     manifest_1(&dir.dir);
     remove_file(&dir.dir.join("vimrc")).unwrap();
@@ -330,7 +330,7 @@ script.sh called with arg1 linux
 #[test]
 #[cfg(target_family = "windows")]
 fn test_missing_file() {
-    let (dir, mut cmd) = setup("test_missing_file");
+    let (dir, mut cmd) = setup_e2e("test_missing_file");
     cmd.args(["manifest-windows-test.yml", "-t", "windows"]);
     manifest_1(&dir.dir);
     remove_file(&dir.dir.join("vimrc")).unwrap();
@@ -356,7 +356,7 @@ script.bat called with arg1 windows\r
 
 #[test]
 fn test_empty_manifest() {
-    let (dir, mut cmd) = setup("test_empty_manifest");
+    let (dir, mut cmd) = setup_e2e("test_empty_manifest");
     cmd.args(["manifest.yml"]);
     write_file(&dir.dir.join("manifest.yml"), "");
 
@@ -368,7 +368,7 @@ fn test_empty_manifest() {
 #[test]
 #[cfg(target_family = "unix")]
 fn test_missing_manifest() {
-    let (_dir, mut cmd) = setup("test_missing_manifest");
+    let (_dir, mut cmd) = setup_e2e("test_missing_manifest");
     cmd.args(["missing.yml"]);
 
     let expected = "Error: No such file or directory (os error 2)\n";
@@ -379,7 +379,7 @@ fn test_missing_manifest() {
 #[test]
 #[cfg(target_family = "windows")]
 fn test_missing_manifest() {
-    let (_dir, mut cmd) = setup("test_missing_manifest");
+    let (_dir, mut cmd) = setup_e2e("test_missing_manifest");
     cmd.args(["missing-windows-test.yml"]);
 
     let expected = "Error: The system cannot find the file specified. \

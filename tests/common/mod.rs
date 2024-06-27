@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use std::env;
 use std::fs;
 use std::io::Write;
@@ -25,11 +27,26 @@ impl TempDir {
     }
 }
 
+/// Creates a temporary directory with a certain name and sets $HOME and the
+/// CWD to the parent directory.
+///
+/// All tests in this module use the same values for $HOME and the CWD,
+/// which prevents issues when tests are run in multiple threads.
+pub fn setup_integration(name: &str) -> TempDir {
+    let dir = TempDir::new(name);
+    let root = dir.dir.parent().unwrap();
+    env::set_current_dir(root).unwrap();
+    if cfg!(target_family = "unix") {
+        env::set_var("HOME", root);
+    }
+    dir
+}
+
 /// Creates a temporary directory with a certain name and create a new coliru
 /// Command with $HOME and the CWD set the the temporary directory.
 ///
 /// Adapted from ripgrep's tests (tests/utils.rs)
-pub fn setup(name: &str) -> (TempDir, Command) {
+pub fn setup_e2e(name: &str) -> (TempDir, Command) {
     let dir = TempDir::new(name);
 
     let exe = env::current_exe().unwrap().parent().unwrap().to_path_buf()
