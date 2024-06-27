@@ -19,8 +19,10 @@ steps:
     tags: [ windows, linux, macos ]
 
   - link:
+    - src: bashrc
+      dst: ~/.bashrc.coliru
     - src: vimrc
-      dst: ~/.vimrc.coliru # Will create symbolic link on Linux & MacOS
+      dst: ~/.vimrc.coliru # Will create symbolic links on Linux & MacOS
     run:
     - src: script.sh
       prefix: sh # unecessary on Unix if script.sh is executable

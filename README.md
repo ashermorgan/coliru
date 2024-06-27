@@ -41,12 +41,14 @@ more details):
 steps:
   - copy:
     - src: gitconfig
-      dst: ~/.gitconfig.coliru
+      dst: ~/.gitconfig
     tags: [ windows, linux, macos ]
 
   - link:
+    - src: bashrc
+      dst: ~/.bashrc
     - src: vimrc
-      dst: ~/.vimrc.coliru # Will create symbolic link on Linux & MacOS
+      dst: ~/.vimrc # Will create symbolic links on Linux & MacOS
     run:
     - src: script.sh
       prefix: sh # unecessary on Unix if script.sh is executable
@@ -55,7 +57,7 @@ steps:
 
   - link:
     - src: vimrc
-      dst: ~/_vimrc.coliru # Will create hard link on Windows
+      dst: ~/_vimrc # Will create hard link on Windows
     run:
     - src: script.bat
       postfix: arg1 $COLIRU_RULES
@@ -69,4 +71,6 @@ rules. If no tags rules are provided, all manifest steps will be executed. Each
 tag rule contains a comma separated list of tags that will satisfy the rule. A
 leading caret (`^`) will negate the entire rule. In other words, commas
 correspond to OR, carets to NOT, and the spaces between rules to AND. So the tag
-rules `A B,C ^D,E` are equivalent to `A && (B || C) && !(D || E)`.
+rules `A B,C ^D,E` are equivalent to `A && (B || C) && !(D || E)`. Common tags
+include supported operating systems and whether the step requires elevated
+privileges.

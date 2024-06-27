@@ -19,6 +19,7 @@ fn manifest_1(dir: &Path) {
     copy_file("manifest-windows-test.yml");
 
     // Create simplified config files
+    write_file(&dir.join("bashrc"), "bash #1");
     write_file(&dir.join("gitconfig"), "git #1");
     write_file(&dir.join("vimrc"), "vim #1");
 
@@ -56,6 +57,7 @@ fn test_standard() {
 
     let expected = "\
 [1/3] Copy gitconfig to ~/.gitconfig.coliru
+[2/3] Link bashrc to ~/.bashrc.coliru
 [2/3] Link vimrc to ~/.vimrc.coliru
 [2/3] Run sh script.sh arg1 linux
 script.sh called with arg1 linux
@@ -64,12 +66,15 @@ script.sh called with arg1 linux
     assert_eq!(&stderr_to_string(&mut cmd), "");
 
     // Assert files are correctly copied/linked/run
+    write_file(&dir.dir.join("bashrc"), "bash #2");
     write_file(&dir.dir.join("gitconfig"), "git #2");
     write_file(&dir.dir.join("vimrc"), "vim #2");
+    let bash_contents = read_file(&dir.dir.join(".bashrc.coliru"));
     let git_contents = read_file(&dir.dir.join(".gitconfig.coliru"));
     let vim1_contents = read_file(&dir.dir.join(".vimrc.coliru"));
     let vim2_exists = dir.dir.join("_vimrc.coliru").exists();
     let log_contents = read_file(&dir.dir.join("log.txt"));
+    assert_eq!(bash_contents, "bash #2");
     assert_eq!(git_contents, "git #1");
     assert_eq!(vim1_contents, "vim #2");
     assert_eq!(vim2_exists, false);
@@ -95,10 +100,12 @@ script.bat called with arg1 windows\r
     // Assert files are correctly copied/linked/run
     write_file(&dir.dir.join("gitconfig"), "git #2");
     write_file(&dir.dir.join("vimrc"), "vim #2");
+    let bash_exists = dir.dir.join(".bashrc.coliru").exists();
     let git_contents = read_file(&dir.dir.join(".gitconfig.coliru"));
     let vim1_exists = dir.dir.join(".vimrc.coliru").exists();
     let vim2_contents = read_file(&dir.dir.join("_vimrc.coliru"));
     let log_contents = read_file(&dir.dir.join("log.txt"));
+    assert_eq!(bash_exists, false);
     assert_eq!(git_contents, "git #1");
     assert_eq!(vim1_exists, false);
     assert_eq!(vim2_contents, "vim #2");
@@ -113,6 +120,7 @@ fn test_run_alternate_tag_rules_1() {
     manifest_1(&dir.dir);
 
     let expected = "\
+[2/3] Link bashrc to ~/.bashrc.coliru
 [2/3] Link vimrc to ~/.vimrc.coliru
 [2/3] Run sh script.sh arg1 linux ^windows
 script.sh called with arg1 linux ^windows
@@ -121,11 +129,14 @@ script.sh called with arg1 linux ^windows
     assert_eq!(&stderr_to_string(&mut cmd), "");
 
     // Assert files are correctly copied/linked/run
+    write_file(&dir.dir.join("bashrc"), "bash #2");
     write_file(&dir.dir.join("vimrc"), "vim #2");
+    let bash_contents = read_file(&dir.dir.join(".bashrc.coliru"));
     let git_exists = dir.dir.join(".gitconfig.coliru").exists();
     let vim1_contents = read_file(&dir.dir.join(".vimrc.coliru"));
     let vim2_exists = dir.dir.join("_vimrc.coliru").exists();
     let log_contents = read_file(&dir.dir.join("log.txt"));
+    assert_eq!(bash_contents, "bash #2");
     assert_eq!(git_exists, false);
     assert_eq!(vim1_contents, "vim #2");
     assert_eq!(vim2_exists, false);
@@ -141,6 +152,7 @@ fn test_run_alternate_tag_rules_2() {
 
     let expected = "\
 [1/3] Copy gitconfig to ~/.gitconfig.coliru
+[2/3] Link bashrc to ~/.bashrc.coliru
 [2/3] Link vimrc to ~/.vimrc.coliru
 [2/3] Run sh script.sh arg1 macos
 script.sh called with arg1 macos
@@ -149,12 +161,15 @@ script.sh called with arg1 macos
     assert_eq!(&stderr_to_string(&mut cmd), "");
 
     // Assert files are correctly copied/linked/run
+    write_file(&dir.dir.join("bashrc"), "bash #2");
     write_file(&dir.dir.join("gitconfig"), "git #2");
     write_file(&dir.dir.join("vimrc"), "vim #2");
+    let bash_contents = read_file(&dir.dir.join(".bashrc.coliru"));
     let git_contents = read_file(&dir.dir.join(".gitconfig.coliru"));
     let vim1_contents = read_file(&dir.dir.join(".vimrc.coliru"));
     let vim2_exists = dir.dir.join("_vimrc.coliru").exists();
     let log_contents = read_file(&dir.dir.join("log.txt"));
+    assert_eq!(bash_contents, "bash #2");
     assert_eq!(git_contents, "git #1");
     assert_eq!(vim1_contents, "vim #2");
     assert_eq!(vim2_exists, false);
@@ -169,6 +184,7 @@ fn test_dry_run() {
 
     let expected = "\
 [1/3] Copy gitconfig to ~/.gitconfig.coliru (DRY RUN)
+[2/3] Link bashrc to ~/.bashrc.coliru (DRY RUN)
 [2/3] Link vimrc to ~/.vimrc.coliru (DRY RUN)
 [2/3] Run sh script.sh arg1 linux (DRY RUN)
 ";
@@ -176,10 +192,12 @@ fn test_dry_run() {
     assert_eq!(&stderr_to_string(&mut cmd), "");
 
     // Assert files are correctly copied/linked/run
+    let bash_exists = dir.dir.join(".bashrc.coliru").exists();
     let git_exists = dir.dir.join(".gitconfig.coliru").exists();
     let vim1_exists = dir.dir.join(".vimrc.coliru").exists();
     let vim2_exists = dir.dir.join("_vimrc.coliru").exists();
     let log_exists = dir.dir.join("log.txt").exists();
+    assert_eq!(bash_exists, false);
     assert_eq!(git_exists, false);
     assert_eq!(vim1_exists, false);
     assert_eq!(vim2_exists, false);
@@ -195,6 +213,7 @@ fn test_copy() {
 
     let expected = "\
 [1/3] Copy gitconfig to ~/.gitconfig.coliru
+[2/3] Copy bashrc to ~/.bashrc.coliru
 [2/3] Copy vimrc to ~/.vimrc.coliru
 [2/3] Run sh script.sh arg1 linux
 script.sh called with arg1 linux
@@ -203,12 +222,15 @@ script.sh called with arg1 linux
     assert_eq!(&stderr_to_string(&mut cmd), "");
 
     // Assert files are correctly copied/linked/run
+    write_file(&dir.dir.join("bashrc"), "bash #2");
     write_file(&dir.dir.join("gitconfig"), "git #2");
     write_file(&dir.dir.join("vimrc"), "vim #2");
+    let bash_contents = read_file(&dir.dir.join(".bashrc.coliru"));
     let git_contents = read_file(&dir.dir.join(".gitconfig.coliru"));
     let vim1_contents = read_file(&dir.dir.join(".vimrc.coliru"));
     let vim2_exists = dir.dir.join("_vimrc.coliru").exists();
     let log_contents = read_file(&dir.dir.join("log.txt"));
+    assert_eq!(bash_contents, "bash #1");
     assert_eq!(git_contents, "git #1");
     assert_eq!(vim1_contents, "vim #1");
     assert_eq!(vim2_exists, false);
@@ -234,10 +256,12 @@ script.bat called with arg1 windows\r
     // Assert files are correctly copied/linked/run
     write_file(&dir.dir.join("gitconfig"), "git #2");
     write_file(&dir.dir.join("vimrc"), "vim #2");
+    let bash_exists = dir.dir.join(".bashrc.coliru").exists();
     let git_contents = read_file(&dir.dir.join(".gitconfig.coliru"));
     let vim1_exists = dir.dir.join(".vimrc.coliru").exists();
     let vim2_contents = read_file(&dir.dir.join("_vimrc.coliru"));
     let log_contents = read_file(&dir.dir.join("log.txt"));
+    assert_eq!(bash_exists, false);
     assert_eq!(git_contents, "git #1");
     assert_eq!(vim1_exists, false);
     assert_eq!(vim2_contents, "vim #1");
@@ -254,6 +278,7 @@ fn test_run_failure() {
 
     let expected_stdout = "\
 [1/3] Copy gitconfig to ~/.gitconfig.coliru
+[2/3] Link bashrc to ~/.bashrc.coliru
 [2/3] Link vimrc to ~/.vimrc.coliru
 [2/3] Run sh script.sh arg1 linux
 ";
@@ -262,11 +287,14 @@ fn test_run_failure() {
     assert_eq!(&stderr_to_string(&mut cmd), expected_stderr);
 
     // Assert files are correctly copied/linked/run
+    write_file(&dir.dir.join("bashrc"), "bash #2");
     write_file(&dir.dir.join("gitconfig"), "git #2");
     write_file(&dir.dir.join("vimrc"), "vim #2");
+    let bash_contents = read_file(&dir.dir.join(".bashrc.coliru"));
     let git_contents = read_file(&dir.dir.join(".gitconfig.coliru"));
     let vim1_contents = read_file(&dir.dir.join(".vimrc.coliru"));
     let vim2_exists = dir.dir.join("_vimrc.coliru").exists();
+    assert_eq!(bash_contents, "bash #2");
     assert_eq!(git_contents, "git #1");
     assert_eq!(vim1_contents, "vim #2");
     assert_eq!(vim2_exists, false);
@@ -292,9 +320,11 @@ fn test_run_failure() {
     // Assert files are correctly copied/linked/run
     write_file(&dir.dir.join("gitconfig"), "git #2");
     write_file(&dir.dir.join("vimrc"), "vim #2");
+    let bash_exists = dir.dir.join(".bashrc.coliru").exists();
     let git_contents = read_file(&dir.dir.join(".gitconfig.coliru"));
     let vim1_exists = dir.dir.join(".vimrc.coliru").exists();
     let vim2_contents = read_file(&dir.dir.join("_vimrc.coliru"));
+    assert_eq!(bash_exists, false);
     assert_eq!(git_contents, "git #1");
     assert_eq!(vim1_exists, false);
     assert_eq!(vim2_contents, "vim #2");
@@ -310,6 +340,7 @@ fn test_missing_file() {
 
     let expected_stdout = "\
 [1/3] Copy gitconfig to ~/.gitconfig.coliru
+[2/3] Link bashrc to ~/.bashrc.coliru
 [2/3] Link vimrc to ~/.vimrc.coliru
 [2/3] Run sh script.sh arg1 linux
 script.sh called with arg1 linux
@@ -320,9 +351,12 @@ script.sh called with arg1 linux
     assert_eq!(&stderr_to_string(&mut cmd), expected_stderr);
 
     // Assert files are correctly copied/linked/run
+    write_file(&dir.dir.join("bashrc"), "bash #2");
     write_file(&dir.dir.join("gitconfig"), "git #2");
+    let bash_contents = read_file(&dir.dir.join(".bashrc.coliru"));
     let git_contents = read_file(&dir.dir.join(".gitconfig.coliru"));
     let log_contents = read_file(&dir.dir.join("log.txt"));
+    assert_eq!(bash_contents, "bash #2");
     assert_eq!(git_contents, "git #1");
     assert_eq!(log_contents, "script.sh called with arg1 linux\n");
 }
@@ -348,8 +382,10 @@ script.bat called with arg1 windows\r
 
     // Assert files are correctly copied/linked/run
     write_file(&dir.dir.join("gitconfig"), "git #2");
+    let bash_exists = dir.dir.join(".bashrc.coliru").exists();
     let git_contents = read_file(&dir.dir.join(".gitconfig.coliru"));
     let log_contents = read_file(&dir.dir.join("log.txt"));
+    assert_eq!(bash_exists, false);
     assert_eq!(git_contents, "git #1");
     assert_eq!(log_contents, "script.bat called with arg1 windows \r\n");
 }
@@ -380,7 +416,7 @@ fn test_missing_manifest() {
 #[cfg(target_family = "windows")]
 fn test_missing_manifest() {
     let (_dir, mut cmd) = setup_e2e("test_missing_manifest");
-    cmd.args(["missing-windows-test.yml"]);
+    cmd.args(["missing.yml"]);
 
     let expected = "Error: The system cannot find the file specified. \
                     (os error 2)\n";

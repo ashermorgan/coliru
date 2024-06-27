@@ -113,6 +113,10 @@ mod tests {
                     copy: vec![],
                     link: vec![
                         CopyLinkOptions {
+                            src: String::from("bashrc"),
+                            dst: String::from("~/.bashrc.coliru"),
+                        },
+                        CopyLinkOptions {
                             src: String::from("vimrc"),
                             dst: String::from("~/.vimrc.coliru"),
                         },
