@@ -6,6 +6,8 @@ use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+pub const SSH_HOST: &str = "test@localhost:2222";
+
 /// Stores the path to a temporary directory that is automatically deleted
 /// when the value is dropped.
 ///
@@ -59,6 +61,34 @@ pub fn setup_e2e(name: &str) -> (TempDir, Command) {
     }
 
     (dir, cmd)
+}
+
+/// Prepares a temporary directory and a new Command for an e2e test, with the
+/// --host argument already provided
+pub fn setup_e2e_ssh(name: &str) -> (TempDir, Command) {
+    let (dir, mut cmd) = setup_e2e(name);
+    cmd.args(["--host", SSH_HOST]);
+    (dir, cmd)
+}
+
+/// Create a basic manifest file and its associated dotfiles in a directory
+pub fn copy_manifest(dir: &Path) {
+    // Copy files from examples
+    let examples = env::current_exe().unwrap().parent().unwrap().to_path_buf()
+        .join("../../../examples");
+    let copy_file = |name: &str| {
+        fs::copy(examples.join(name), &dir.join(name)).unwrap();
+    };
+    copy_file("script.bat");
+    copy_file("script.sh");
+    copy_file("manifest.yml");
+    copy_file("manifest-windows-test.yml");
+
+    // Create simplified config files
+    write_file(&dir.join("bashrc"), "bash #1");
+    write_file(&dir.join("gitconfig"), "git #1");
+    write_file(&dir.join("vimrc"), "vim #1");
+
 }
 
 /// Writes a string to a file, overwriting it if it already exists.
