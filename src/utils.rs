@@ -11,6 +11,7 @@ use std::process::Command;
 /// Tildes are expanded if present and the destination file is overwritten if
 /// necessary.
 pub fn copy_file(src: &str, dst: &str) -> io::Result<()> {
+    if absolute(src)? == absolute(dst)? { return Ok(()); }
     let _dst = prepare_path(dst)?;
     fs::copy(src, _dst)?;
     Ok(())
@@ -22,12 +23,14 @@ pub fn copy_file(src: &str, dst: &str) -> io::Result<()> {
 /// necessary. On non-Unix platforms, a hard link will be created instead.
 #[cfg(target_family = "unix")]
 pub fn link_file(src: &str, dst: &str) -> io::Result<()> {
+    if absolute(src)? == absolute(dst)? { return Ok(()); }
     let _dst = prepare_path(dst)?;
     symlink(fs::canonicalize(src)?, _dst)?;
     Ok(())
 }
 #[cfg(not(target_family = "unix"))]
 pub fn link_file(src: &str, dst: &str) -> io::Result<()> {
+    if absolute(src)? == absolute(dst)? { return Ok(()); }
     let _dst = prepare_path(dst)?;
     fs::hard_link(src, _dst)?;
     Ok(())
@@ -102,6 +105,21 @@ mod tests {
     }
 
     #[test]
+    fn test_copy_file_same_file() {
+        let tmp = setup_integration("test_copy_file_same_file");
+
+        let src = &tmp.dir.join("foo");
+        let dst = &tmp.dir.join("foo");
+        write_file(src, "contents of foo");
+
+        let result = copy_file(src.to_str().unwrap(), dst.to_str().unwrap());
+
+        let contents = fs::read_to_string(dst).unwrap();
+        assert_eq!(result.is_ok(), true);
+        assert_eq!(contents, "contents of foo");
+    }
+
+    #[test]
     fn test_copy_file_existing_file() {
         let tmp = setup_integration("test_copy_file_existing_file");
 
@@ -168,6 +186,21 @@ mod tests {
         let contents = fs::read_to_string(dst).unwrap();
         assert_eq!(result.is_ok(), true);
         assert_eq!(contents, "new contents of foo");
+    }
+
+    #[test]
+    fn test_link_file_same_file() {
+        let tmp = setup_integration("test_link_file_same_file");
+
+        let src = &tmp.dir.join("foo");
+        let dst = &tmp.dir.join("foo");
+        write_file(src, "contents of foo");
+
+        let result = link_file(src.to_str().unwrap(), dst.to_str().unwrap());
+
+        let contents = fs::read_to_string(dst).unwrap();
+        assert_eq!(result.is_ok(), true);
+        assert_eq!(contents, "contents of foo");
     }
 
     #[test]
