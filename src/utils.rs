@@ -259,21 +259,24 @@ mod tests {
     #[test]
     #[cfg(target_family = "unix")]
     fn test_link_file_relative_source() {
-        let tmp = setup_integration("test_link_file_relative_source");
+        let dir = PathBuf::from("tests/.temp/ssh/test_link_file_relative_source");
+        fs::create_dir_all(&dir).unwrap();
 
-        let src = &tmp.dir.join("foo");
-        let src_rel = "test_link_file_relative_source/foo";
-        let dst = &tmp.dir.join("dir1").join("dir2").join("bar");
-        write_file(src, "old contents of foo");
+        let src = absolute(&dir.join("foo")).unwrap();
+        let src_rel = "tests/.temp/ssh/test_link_file_relative_source/foo";
+        let dst = &dir.join("dir1").join("dir2").join("bar");
+        write_file(&src, "old contents of foo");
 
         let result = link_file(src_rel, dst.to_str().unwrap());
 
-        write_file(src, "new contents of foo");
+        write_file(&src, "new contents of foo");
         let contents = fs::read_to_string(dst).unwrap();
         let link = fs::read_link(dst).unwrap();
         assert_eq!(result.is_ok(), true);
         assert_eq!(contents, "new contents of foo");
-        assert_eq!(&link, src); // src changed to absolute path
+        assert_eq!(link, src); // src changed to absolute path
+
+        fs::remove_dir_all(&dir).unwrap();
     }
 
     #[test]

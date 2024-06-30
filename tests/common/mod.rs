@@ -6,7 +6,8 @@ use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-pub const SSH_HOST: &str = "test@localhost:2222";
+/// The SSH test server
+pub const SSH_HOST: &str = "test@localhost"; // TODO: add explicit port
 
 /// Stores the path to a temporary directory that is automatically deleted
 /// when the value is dropped.
@@ -29,15 +30,14 @@ impl TempDir {
     }
 }
 
-/// Creates a temporary directory with a certain name and sets $HOME and the
-/// CWD to the parent directory.
+/// Creates a temporary directory with a certain name and sets $HOME to the
+/// parent directory.
 ///
-/// All tests in this module use the same values for $HOME and the CWD,
-/// which prevents issues when tests are run in multiple threads.
+/// All tests in this module use the same values for $HOME, which prevents
+/// issues when tests are run in multiple threads.
 pub fn setup_integration(name: &str) -> TempDir {
     let dir = TempDir::new(name);
     let root = dir.dir.parent().unwrap();
-    env::set_current_dir(root).unwrap();
     if cfg!(target_family = "unix") {
         env::set_var("HOME", root);
     }

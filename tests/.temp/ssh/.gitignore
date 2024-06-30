@@ -1,0 +1,6 @@
+# This directory is mounted to the SSH docker container used for E2E tests. All
+# children are ignored, but the .gitignore file guarantees that the directory
+# will exist.
+
+./*
+!.gitignore
