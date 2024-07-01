@@ -8,9 +8,9 @@ use std::fs::remove_file;
 
 #[test]
 fn test_ssh_standard() {
-    let (dir, mut cmd) = setup_e2e_ssh("test_ssh_standard");
+    let (dirs, mut cmd) = setup_e2e_ssh("test_ssh_standard");
     cmd.args(["manifest.yml", "-t", "linux"]);
-    copy_manifest(&dir.dir);
+    copy_manifest(&dirs.local);
 
     let expected_stdout = format!("\
 [1/3] Send gitconfig to {SSH_HOST}:~/.gitconfig.coliru
@@ -27,14 +27,14 @@ fn test_ssh_standard() {
     assert_eq!(&stderr_to_string(&mut cmd), expected_stderr);
 
     // Assert files are correctly copied/linked/run
-    // write_file(&dir.dir.join("bashrc"), "bash #2");
-    // write_file(&dir.dir.join("gitconfig"), "git #2");
-    // write_file(&dir.dir.join("vimrc"), "vim #2");
-    // let bash_contents = read_file(&dir.dir.join(".bashrc.coliru"));
-    // let git_contents = read_file(&dir.dir.join(".gitconfig.coliru"));
-    // let vim1_contents = read_file(&dir.dir.join(".vimrc.coliru"));
-    // let vim2_exists = dir.dir.join("_vimrc.coliru").exists();
-    // let log_contents = read_file(&dir.dir.join("log.txt"));
+    // write_file(&dirs.local.join("bashrc"), "bash #2");
+    // write_file(&dirs.local.join("gitconfig"), "git #2");
+    // write_file(&dirs.local.join("vimrc"), "vim #2");
+    // let bash_contents = read_file(&dirs.ssh.join(".bashrc.coliru"));
+    // let git_contents = read_file(&dirs.ssh.join(".gitconfig.coliru"));
+    // let vim1_contents = read_file(&dirs.ssh.join(".vimrc.coliru"));
+    // let vim2_exists = dirs.ssh.join("_vimrc.coliru").exists();
+    // let log_contents = read_file(&dirs.local.join("log.txt"));
     // assert_eq!(bash_contents, "bash #2");
     // assert_eq!(git_contents, "git #1");
     // assert_eq!(vim1_contents, "vim #2");
@@ -44,9 +44,9 @@ fn test_ssh_standard() {
 
 #[test]
 fn test_ssh_run_alternate_tag_rules_1() {
-    let (dir, mut cmd) = setup_e2e_ssh("test_ssh_run_alternate_tag_rules_1");
+    let (dirs, mut cmd) = setup_e2e_ssh("test_ssh_run_alternate_tag_rules_1");
     cmd.args(["manifest.yml", "-t", "linux", "^windows"]);
-    copy_manifest(&dir.dir);
+    copy_manifest(&dirs.local);
 
     let expected_stdout = format!("\
 [2/3] Send bashrc to {SSH_HOST}:~/.bashrc.coliru
@@ -61,13 +61,13 @@ fn test_ssh_run_alternate_tag_rules_1() {
     assert_eq!(&stderr_to_string(&mut cmd), expected_stderr);
 
     // Assert files are correctly copied/linked/run
-    // write_file(&dir.dir.join("bashrc"), "bash #2");
-    // write_file(&dir.dir.join("vimrc"), "vim #2");
-    // let bash_contents = read_file(&dir.dir.join(".bashrc.coliru"));
-    // let git_exists = dir.dir.join(".gitconfig.coliru").exists();
-    // let vim1_contents = read_file(&dir.dir.join(".vimrc.coliru"));
-    // let vim2_exists = dir.dir.join("_vimrc.coliru").exists();
-    // let log_contents = read_file(&dir.dir.join("log.txt"));
+    // write_file(&dirs.local.join("bashrc"), "bash #2");
+    // write_file(&dirs.local.join("vimrc"), "vim #2");
+    // let bash_contents = read_file(&dirs.ssh.join(".bashrc.coliru"));
+    // let git_exists = dirs.ssh.join(".gitconfig.coliru").exists();
+    // let vim1_contents = read_file(&dirs.ssh.join(".vimrc.coliru"));
+    // let vim2_exists = dirs.ssh.join("_vimrc.coliru").exists();
+    // let log_contents = read_file(&dirs.local.join("log.txt"));
     // assert_eq!(bash_contents, "bash #2");
     // assert_eq!(git_exists, false);
     // assert_eq!(vim1_contents, "vim #2");
@@ -77,9 +77,9 @@ fn test_ssh_run_alternate_tag_rules_1() {
 
 #[test]
 fn test_ssh_run_alternate_tag_rules_2() {
-    let (dir, mut cmd) = setup_e2e_ssh("test_ssh_run_alternate_tag_rules_2");
+    let (dirs, mut cmd) = setup_e2e_ssh("test_ssh_run_alternate_tag_rules_2");
     cmd.args(["manifest.yml", "-t", "macos"]);
-    copy_manifest(&dir.dir);
+    copy_manifest(&dirs.local);
 
     let expected_stdout = format!("\
 [1/3] Send gitconfig to {SSH_HOST}:~/.gitconfig.coliru
@@ -96,14 +96,14 @@ fn test_ssh_run_alternate_tag_rules_2() {
     assert_eq!(&stderr_to_string(&mut cmd), expected_stderr);
 
     // Assert files are correctly copied/linked/run
-    // write_file(&dir.dir.join("bashrc"), "bash #2");
-    // write_file(&dir.dir.join("gitconfig"), "git #2");
-    // write_file(&dir.dir.join("vimrc"), "vim #2");
-    // let bash_contents = read_file(&dir.dir.join(".bashrc.coliru"));
-    // let git_contents = read_file(&dir.dir.join(".gitconfig.coliru"));
-    // let vim1_contents = read_file(&dir.dir.join(".vimrc.coliru"));
-    // let vim2_exists = dir.dir.join("_vimrc.coliru").exists();
-    // let log_contents = read_file(&dir.dir.join("log.txt"));
+    // write_file(&dirs.local.join("bashrc"), "bash #2");
+    // write_file(&dirs.local.join("gitconfig"), "git #2");
+    // write_file(&dirs.local.join("vimrc"), "vim #2");
+    // let bash_contents = read_file(&dirs.ssh.join(".bashrc.coliru"));
+    // let git_contents = read_file(&dirs.ssh.join(".gitconfig.coliru"));
+    // let vim1_contents = read_file(&dirs.ssh.join(".vimrc.coliru"));
+    // let vim2_exists = dirs.ssh.join("_vimrc.coliru").exists();
+    // let log_contents = read_file(&dirs.local.join("log.txt"));
     // assert_eq!(bash_contents, "bash #2");
     // assert_eq!(git_contents, "git #1");
     // assert_eq!(vim1_contents, "vim #2");
@@ -113,9 +113,9 @@ fn test_ssh_run_alternate_tag_rules_2() {
 
 #[test]
 fn test_ssh_dry_run() {
-    let (dir, mut cmd) = setup_e2e_ssh("test_ssh_dry_run");
+    let (dirs, mut cmd) = setup_e2e_ssh("test_ssh_dry_run");
     cmd.args(["manifest.yml", "--dry-run", "-t", "linux"]);
-    copy_manifest(&dir.dir);
+    copy_manifest(&dirs.local);
 
     let expected = format!("\
 [1/3] Send gitconfig to {SSH_HOST}:~/.gitconfig.coliru (DRY RUN)
@@ -127,11 +127,11 @@ fn test_ssh_dry_run() {
     assert_eq!(&stderr_to_string(&mut cmd), "");
 
     // Assert files are correctly copied/linked/run
-    // let bash_exists = dir.dir.join(".bashrc.coliru").exists();
-    // let git_exists = dir.dir.join(".gitconfig.coliru").exists();
-    // let vim1_exists = dir.dir.join(".vimrc.coliru").exists();
-    // let vim2_exists = dir.dir.join("_vimrc.coliru").exists();
-    // let log_exists = dir.dir.join("log.txt").exists();
+    // let bash_exists = dirs.ssh.join(".bashrc.coliru").exists();
+    // let git_exists = dirs.ssh.join(".gitconfig.coliru").exists();
+    // let vim1_exists = dirs.ssh.join(".vimrc.coliru").exists();
+    // let vim2_exists = dirs.ssh.join("_vimrc.coliru").exists();
+    // let log_exists = dirs.local.join("log.txt").exists();
     // assert_eq!(bash_exists, false);
     // assert_eq!(git_exists, false);
     // assert_eq!(vim1_exists, false);
@@ -141,9 +141,9 @@ fn test_ssh_dry_run() {
 
 #[test]
 fn test_ssh_copy() {
-    let (dir, mut cmd) = setup_e2e_ssh("test_ssh_copy");
+    let (dirs, mut cmd) = setup_e2e_ssh("test_ssh_copy");
     cmd.args(["manifest.yml", "--copy", "-t", "linux"]);
-    copy_manifest(&dir.dir);
+    copy_manifest(&dirs.local);
 
     let expected_stdout = format!("\
 [1/3] Send gitconfig to {SSH_HOST}:~/.gitconfig.coliru
@@ -160,14 +160,14 @@ fn test_ssh_copy() {
     assert_eq!(&stderr_to_string(&mut cmd), expected_stderr);
 
     // Assert files are correctly copied/linked/run
-    // write_file(&dir.dir.join("bashrc"), "bash #2");
-    // write_file(&dir.dir.join("gitconfig"), "git #2");
-    // write_file(&dir.dir.join("vimrc"), "vim #2");
-    // let bash_contents = read_file(&dir.dir.join(".bashrc.coliru"));
-    // let git_contents = read_file(&dir.dir.join(".gitconfig.coliru"));
-    // let vim1_contents = read_file(&dir.dir.join(".vimrc.coliru"));
-    // let vim2_exists = dir.dir.join("_vimrc.coliru").exists();
-    // let log_contents = read_file(&dir.dir.join("log.txt"));
+    // write_file(&dirs.local.join("bashrc"), "bash #2");
+    // write_file(&dirs.local.join("gitconfig"), "git #2");
+    // write_file(&dirs.local.join("vimrc"), "vim #2");
+    // let bash_contents = read_file(&dirs.ssh.join(".bashrc.coliru"));
+    // let git_contents = read_file(&dirs.ssh.join(".gitconfig.coliru"));
+    // let vim1_contents = read_file(&dirs.ssh.join(".vimrc.coliru"));
+    // let vim2_exists = dirs.ssh.join("_vimrc.coliru").exists();
+    // let log_contents = read_file(&dirs.local.join("log.txt"));
     // assert_eq!(bash_contents, "bash #1");
     // assert_eq!(git_contents, "git #1");
     // assert_eq!(vim1_contents, "vim #1");
@@ -177,10 +177,10 @@ fn test_ssh_copy() {
 
 #[test]
 fn test_ssh_run_failure() {
-    let (dir, mut cmd) = setup_e2e_ssh("test_ssh_run_failure");
+    let (dirs, mut cmd) = setup_e2e_ssh("test_ssh_run_failure");
     cmd.args(["manifest.yml", "-t", "linux"]);
-    copy_manifest(&dir.dir);
-    write_file(&dir.dir.join("script.sh"), "exit 1");
+    copy_manifest(&dirs.local);
+    write_file(&dirs.local.join("script.sh"), "exit 1");
 
     let expected_stdout = format!("\
 [1/3] Send gitconfig to {SSH_HOST}:~/.gitconfig.coliru
@@ -197,13 +197,13 @@ fn test_ssh_run_failure() {
     assert_eq!(&stderr_to_string(&mut cmd), expected_stderr);
 
     // Assert files are correctly copied/linked/run
-    // write_file(&dir.dir.join("bashrc"), "bash #2");
-    // write_file(&dir.dir.join("gitconfig"), "git #2");
-    // write_file(&dir.dir.join("vimrc"), "vim #2");
-    // let bash_contents = read_file(&dir.dir.join(".bashrc.coliru"));
-    // let git_contents = read_file(&dir.dir.join(".gitconfig.coliru"));
-    // let vim1_contents = read_file(&dir.dir.join(".vimrc.coliru"));
-    // let vim2_exists = dir.dir.join("_vimrc.coliru").exists();
+    // write_file(&dirs.local.join("bashrc"), "bash #2");
+    // write_file(&dirs.local.join("gitconfig"), "git #2");
+    // write_file(&dirs.local.join("vimrc"), "vim #2");
+    // let bash_contents = read_file(&dirs.ssh.join(".bashrc.coliru"));
+    // let git_contents = read_file(&dirs.ssh.join(".gitconfig.coliru"));
+    // let vim1_contents = read_file(&dirs.ssh.join(".vimrc.coliru"));
+    // let vim2_exists = dirs.ssh.join("_vimrc.coliru").exists();
     // assert_eq!(bash_contents, "bash #2");
     // assert_eq!(git_contents, "git #1");
     // assert_eq!(vim1_contents, "vim #2");
@@ -212,10 +212,10 @@ fn test_ssh_run_failure() {
 
 #[test]
 fn test_ssh_missing_file() {
-    let (dir, mut cmd) = setup_e2e_ssh("test_ssh_missing_file");
+    let (dirs, mut cmd) = setup_e2e_ssh("test_ssh_missing_file");
     cmd.args(["manifest.yml", "-t", "linux"]);
-    copy_manifest(&dir.dir);
-    remove_file(&dir.dir.join("vimrc")).unwrap();
+    copy_manifest(&dirs.local);
+    remove_file(&dirs.local.join("vimrc")).unwrap();
 
     let expected_stdout = format!("\
 [1/3] Send gitconfig to {SSH_HOST}:~/.gitconfig.coliru
@@ -232,11 +232,11 @@ fn test_ssh_missing_file() {
     assert_eq!(&stderr_to_string(&mut cmd), expected_stderr);
 
     // Assert files are correctly copied/linked/run
-    // write_file(&dir.dir.join("bashrc"), "bash #2");
-    // write_file(&dir.dir.join("gitconfig"), "git #2");
-    // let bash_contents = read_file(&dir.dir.join(".bashrc.coliru"));
-    // let git_contents = read_file(&dir.dir.join(".gitconfig.coliru"));
-    // let log_contents = read_file(&dir.dir.join("log.txt"));
+    // write_file(&dirs.local.join("bashrc"), "bash #2");
+    // write_file(&dirs.local.join("gitconfig"), "git #2");
+    // let bash_contents = read_file(&dirs.ssh.join(".bashrc.coliru"));
+    // let git_contents = read_file(&dirs.ssh.join(".gitconfig.coliru"));
+    // let log_contents = read_file(&dirs.ssh.join("log.txt"));
     // assert_eq!(bash_contents, "bash #2");
     // assert_eq!(git_contents, "git #1");
     // assert_eq!(log_contents, "script.sh called with arg1 linux\n");

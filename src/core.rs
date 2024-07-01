@@ -3,7 +3,7 @@ use std::path::Path;
 use super::manifest::{CopyLinkOptions, RunOptions, Manifest, parse_manifest_file
 };
 use super::tags::tags_match;
-use super::utils::{copy_file, link_file, run_script};
+use super::local::{copy_file, link_file, run_script};
 
 /// Execute the steps in a coliru manifest file according to a set of tag rules
 pub fn execute_manifest_file(path: &Path, tag_rules: Vec<String>, host: &str,
