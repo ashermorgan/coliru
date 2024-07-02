@@ -43,9 +43,23 @@ fn stage_file(src: &str, dst: &str, staging_dir: &str) -> Result<(), String> {
         .map_err(|why| why.to_string())
 }
 
+/// Transfer the files in an SCP staging directory to a remote machine
+#[allow(dead_code)]
+fn send_staged_files(staging_dir: &str, host: &str) -> Result<(), String> {
+    let _staging_dir = PathBuf::from(staging_dir);
+    let home_dir = _staging_dir.join("home");
+    if home_dir.exists() {
+        send_dir(home_dir.to_string_lossy().to_mut(), "~", host)?;
+    }
+    let root_dir = _staging_dir.join("root");
+    if root_dir.exists() {
+        send_dir(root_dir.to_string_lossy().to_mut(), "/", host)?;
+    }
+    Ok(())
+}
+
 /// Copy a directory to another machine via SCP and merge it with a destination
 /// directory
-#[allow(dead_code)]
 fn send_dir(src: &str, dst: &str, host: &str) -> Result<(), String> {
     // To avoid the source directory being copied as a subdirectory of the
     // destination directory, we must send the contents of the directory
@@ -129,6 +143,63 @@ mod tests {
         assert_eq!(result, Ok(()));
         assert_eq!(dst_real.exists(), true);
         assert_eq!(read_file(&dst_real), "contents of foo");
+    }
+
+    #[test]
+    #[cfg(target_family = "unix")]
+    fn test_send_staged_files_no_files() {
+        let tmp = setup_integration("test_send_staged_files_no_files");
+
+        let result = send_staged_files(tmp.local.to_str().unwrap(), SSH_HOST);
+
+        assert_eq!(result, Ok(()));
+    }
+
+    #[test]
+    #[cfg(target_family = "unix")]
+    fn test_send_staged_files_home() {
+        let tmp = setup_integration("test_send_staged_files_home");
+
+        let src = tmp.local.join("home").join("test_send_staged_files_home");
+        let src_foo = src.join("foo");
+        let src_bar = src.join("dir").join("bar");
+        fs::create_dir_all(&src_bar.parent().unwrap()).unwrap();
+        write_file(&src_foo, "contents of foo");
+        write_file(&src_bar, "contents of bar");
+
+        let result = send_staged_files(tmp.local.to_str().unwrap(), SSH_HOST);
+
+        let dst_foo = tmp.ssh.join("foo");
+        let dst_bar = tmp.ssh.join("dir").join("bar");
+        assert_eq!(result, Ok(()));
+        assert_eq!(dst_foo.exists(), true);
+        assert_eq!(read_file(&dst_foo), "contents of foo");
+        assert_eq!(dst_bar.exists(), true);
+        assert_eq!(read_file(&dst_bar), "contents of bar");
+    }
+
+    #[test]
+    #[cfg(target_family = "unix")]
+    fn test_send_staged_files_root() {
+        let tmp = setup_integration("test_send_staged_files_root");
+
+        let src = tmp.local.join("root").join("home").join("test")
+            .join("test_send_staged_files_root");
+        let src_foo = src.join("foo");
+        let src_bar = src.join("dir").join("bar");
+        fs::create_dir_all(&src_bar.parent().unwrap()).unwrap();
+        write_file(&src_foo, "contents of foo");
+        write_file(&src_bar, "contents of bar");
+
+        let result = send_staged_files(tmp.local.to_str().unwrap(), SSH_HOST);
+
+        let dst_foo = tmp.ssh.join("foo");
+        let dst_bar = tmp.ssh.join("dir").join("bar");
+        assert_eq!(result, Ok(()));
+        assert_eq!(dst_foo.exists(), true);
+        assert_eq!(read_file(&dst_foo), "contents of foo");
+        assert_eq!(dst_bar.exists(), true);
+        assert_eq!(read_file(&dst_bar), "contents of bar");
     }
 
     #[test]
