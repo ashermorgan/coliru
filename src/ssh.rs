@@ -80,6 +80,24 @@ fn send_dir(src: &str, dst: &str, host: &str) -> Result<(), String> {
     Ok(())
 }
 
+/// Execute a command on another machine via SSH
+#[allow(dead_code)]
+pub fn send_command(command: &str, host: &str) -> Result<(), String> {
+    let mut cmd = Command::new("ssh");
+    if host == "test@localhost" {
+        // SSH options and port for test server hard coded for now
+        cmd.args(["-o", "StrictHostKeyChecking=no", "-p", "2222"]);
+    }
+    println!("{host} {command} running");
+    cmd.args([host, command]);
+
+    let status = cmd.status().map_err(|why| why.to_string())?;
+    if !status.success() {
+        return Err(format!("SSH exited with {status}"));
+    }
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     #![allow(unused_imports)]
@@ -273,5 +291,21 @@ mod tests {
         assert_eq!(read_file(&dst_bar), "new contents of bar");
         assert_eq!(dst_baz.exists(), true);
         assert_eq!(read_file(&dst_baz), "old contents of baz");
+    }
+
+    #[test]
+    #[cfg(target_family = "unix")]
+    fn test_send_command_basic() {
+        let tmp = setup_integration("test_send_command_basic");
+
+        let dst = "~/test_send_command_basic/foo";
+        let dst_real = tmp.ssh.join("foo");
+        let cmd = format!("echo 'contents of foo' > {}", dst);
+
+        let result = send_command(&cmd, SSH_HOST);
+
+        assert_eq!(result, Ok(()));
+        assert_eq!(dst_real.exists(), true);
+        assert_eq!(read_file(&dst_real), "contents of foo\n");
     }
 }
