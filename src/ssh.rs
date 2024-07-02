@@ -1,6 +1,6 @@
 use shellexpand::tilde_with_context;
-use std::fs::read_dir;
-use std::path::{MAIN_SEPARATOR_STR, PathBuf};
+use std::fs::{read_dir, remove_dir_all};
+use std::path::{MAIN_SEPARATOR_STR, Path, PathBuf};
 use std::process::Command;
 use super::local::copy_file;
 
@@ -8,13 +8,11 @@ use super::local::copy_file;
 ///
 /// The destination directory structure will be recreated in the staging
 /// directory under either the home or root subdirectories. This staging system
-/// allows for many files to transferred at once and for missing directories to
-/// be created automatically on the remote machine.
-#[allow(dead_code)]
-fn stage_file(src: &str, dst: &str, staging_dir: &str) -> Result<(), String> {
-    let _staging_dir = PathBuf::from(staging_dir);
-    let home_dir = _staging_dir.join("home");
-    let root_dir = _staging_dir.join("root");
+/// allows missing directories to be created automatically on the remote
+/// machine.
+pub fn stage_file(src: &str, dst: &str, staging_dir: &Path) -> Result<(), String> {
+    let home_dir = staging_dir.join("home");
+    let root_dir = staging_dir.join("root");
     let get_home_dir = || {
         Some::<String>(home_dir.to_string_lossy().into())
     };
@@ -44,16 +42,16 @@ fn stage_file(src: &str, dst: &str, staging_dir: &str) -> Result<(), String> {
 }
 
 /// Transfer the files in an SCP staging directory to a remote machine
-#[allow(dead_code)]
-fn send_staged_files(staging_dir: &str, host: &str) -> Result<(), String> {
-    let _staging_dir = PathBuf::from(staging_dir);
-    let home_dir = _staging_dir.join("home");
+pub fn send_staged_files(staging_dir: &Path, host: &str) -> Result<(), String> {
+    let home_dir = staging_dir.join("home");
     if home_dir.exists() {
         send_dir(home_dir.to_string_lossy().to_mut(), "~", host)?;
+        remove_dir_all(home_dir).map_err(|why| why.to_string())?;
     }
-    let root_dir = _staging_dir.join("root");
+    let root_dir = staging_dir.join("root");
     if root_dir.exists() {
         send_dir(root_dir.to_string_lossy().to_mut(), "/", host)?;
+        remove_dir_all(root_dir).map_err(|why| why.to_string())?;
     }
     Ok(())
 }
@@ -68,7 +66,7 @@ fn send_dir(src: &str, dst: &str, host: &str) -> Result<(), String> {
         let _src = item.map_err(|why| why.to_string())?.path();
 
         let mut cmd = Command::new("scp");
-        if cfg!(test) {
+        if host == "test@localhost" {
             // SSH options and port for test server hard coded for now
             cmd.args(["-o", "StrictHostKeyChecking=no", "-P", "2222"]);
         }
@@ -101,8 +99,7 @@ mod tests {
         let staging  = &tmp.local;
         write_file(&src, "contents of foo");
 
-        let result = stage_file(src.to_str().unwrap(), dst,
-                                staging.to_str().unwrap());
+        let result = stage_file(src.to_str().unwrap(), dst, staging);
 
         assert_eq!(result, Ok(()));
         assert_eq!(dst_real.exists(), true);
@@ -119,8 +116,7 @@ mod tests {
         let staging  = &tmp.local;
         write_file(&src, "contents of foo");
 
-        let result = stage_file(src.to_str().unwrap(), dst,
-                                staging.to_str().unwrap());
+        let result = stage_file(src.to_str().unwrap(), dst, staging);
 
         assert_eq!(result, Ok(()));
         assert_eq!(dst_real.exists(), true);
@@ -137,8 +133,7 @@ mod tests {
         let staging  = &tmp.local;
         write_file(&src, "contents of foo");
 
-        let result = stage_file(src.to_str().unwrap(), dst,
-                                staging.to_str().unwrap());
+        let result = stage_file(src.to_str().unwrap(), dst, staging);
 
         assert_eq!(result, Ok(()));
         assert_eq!(dst_real.exists(), true);
@@ -150,7 +145,7 @@ mod tests {
     fn test_send_staged_files_no_files() {
         let tmp = setup_integration("test_send_staged_files_no_files");
 
-        let result = send_staged_files(tmp.local.to_str().unwrap(), SSH_HOST);
+        let result = send_staged_files(&tmp.local, SSH_HOST);
 
         assert_eq!(result, Ok(()));
     }
@@ -167,7 +162,7 @@ mod tests {
         write_file(&src_foo, "contents of foo");
         write_file(&src_bar, "contents of bar");
 
-        let result = send_staged_files(tmp.local.to_str().unwrap(), SSH_HOST);
+        let result = send_staged_files(&tmp.local, SSH_HOST);
 
         let dst_foo = tmp.ssh.join("foo");
         let dst_bar = tmp.ssh.join("dir").join("bar");
@@ -176,6 +171,8 @@ mod tests {
         assert_eq!(read_file(&dst_foo), "contents of foo");
         assert_eq!(dst_bar.exists(), true);
         assert_eq!(read_file(&dst_bar), "contents of bar");
+        assert_eq!(tmp.local.join("home").exists(), false);
+        assert_eq!(tmp.local.join("root").exists(), false);
     }
 
     #[test]
@@ -191,7 +188,7 @@ mod tests {
         write_file(&src_foo, "contents of foo");
         write_file(&src_bar, "contents of bar");
 
-        let result = send_staged_files(tmp.local.to_str().unwrap(), SSH_HOST);
+        let result = send_staged_files(&tmp.local, SSH_HOST);
 
         let dst_foo = tmp.ssh.join("foo");
         let dst_bar = tmp.ssh.join("dir").join("bar");
@@ -200,6 +197,8 @@ mod tests {
         assert_eq!(read_file(&dst_foo), "contents of foo");
         assert_eq!(dst_bar.exists(), true);
         assert_eq!(read_file(&dst_bar), "contents of bar");
+        assert_eq!(tmp.local.join("home").exists(), false);
+        assert_eq!(tmp.local.join("root").exists(), false);
     }
 
     #[test]

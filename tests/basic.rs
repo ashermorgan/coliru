@@ -69,7 +69,7 @@ fn test_basic_absolute_manifest() {
     let (dirs, mut cmd) = setup_e2e("test_basic_absolute_manifest");
     let manifest_path = dirs.local.join("manifest.yml");
     cmd.args([&manifest_path.to_str().unwrap(), "--dry-run", "-t", "linux"]);
-    copy_manifest(&dirs.local);
+    copy_manifest(&dirs.local, "~/");
 
     let expected = "\
 [1/3] Copy gitconfig to ~/.gitconfig.coliru (DRY RUN)

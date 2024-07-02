@@ -89,7 +89,10 @@ pub fn setup_e2e_ssh(name: &str) -> (TempDir, Command) {
 }
 
 /// Create a basic manifest file and its associated dotfiles in a directory
-pub fn copy_manifest(dir: &Path) {
+///
+/// All occurances of the string "~/" in examples/manifest.yml will be replaced
+/// with the value of home_dir.
+pub fn copy_manifest(dir: &Path, home_dir: &str) {
     // Copy files from examples
     let examples = env::current_exe().unwrap().parent().unwrap().to_path_buf()
         .join("../../../examples");
@@ -98,8 +101,11 @@ pub fn copy_manifest(dir: &Path) {
     };
     copy_file("script.bat");
     copy_file("script.sh");
-    copy_file("manifest.yml");
-    copy_file("manifest-windows-test.yml");
+
+    // Create manifest file with "~/" replaced for home_dir
+    let mut manifest = read_file(&examples.join("manifest.yml"));
+    manifest = manifest.replace("~/", home_dir);
+    write_file(&dir.join("manifest.yml"), &manifest);
 
     // Create simplified config files
     write_file(&dir.join("bashrc"), "bash #1");

@@ -11,7 +11,7 @@ use std::fs::remove_file;
 fn test_local_standard() {
     let (dirs, mut cmd) = setup_e2e("test_local_standard");
     cmd.args(["manifest.yml", "-t", "linux"]);
-    copy_manifest(&dirs.local);
+    copy_manifest(&dirs.local, "~/");
 
     let expected = "\
 [1/3] Copy gitconfig to ~/.gitconfig.coliru
@@ -20,8 +20,8 @@ fn test_local_standard() {
 [2/3] Run sh script.sh arg1 linux
 script.sh called with arg1 linux
 ";
-    assert_eq!(&stdout_to_string(&mut cmd), expected);
     assert_eq!(&stderr_to_string(&mut cmd), "");
+    assert_eq!(&stdout_to_string(&mut cmd), expected);
 
     // Assert files are correctly copied/linked/run
     write_file(&dirs.local.join("bashrc"), "bash #2");
@@ -43,8 +43,8 @@ script.sh called with arg1 linux
 #[cfg(target_family = "windows")]
 fn test_local_standard() {
     let (dirs, mut cmd) = setup_e2e("test_local_standard");
-    cmd.args(["manifest-windows-test.yml", "-t", "windows"]);
-    copy_manifest(&dirs.local);
+    cmd.args(["manifest.yml", "-t", "windows"]);
+    copy_manifest(&dirs.local, "");
 
     let expected = "\
 [1/3] Copy gitconfig to .gitconfig.coliru
@@ -52,8 +52,8 @@ fn test_local_standard() {
 [3/3] Run  script.bat arg1 windows
 script.bat called with arg1 windows\r
 ";
-    assert_eq!(&stdout_to_string(&mut cmd), expected);
     assert_eq!(&stderr_to_string(&mut cmd), "");
+    assert_eq!(&stdout_to_string(&mut cmd), expected);
 
     // Assert files are correctly copied/linked/run
     write_file(&dirs.local.join("gitconfig"), "git #2");
@@ -75,7 +75,7 @@ script.bat called with arg1 windows\r
 fn test_local_run_alternate_tag_rules_1() {
     let (dirs, mut cmd) = setup_e2e("test_local_run_alternate_tag_rules_1");
     cmd.args(["manifest.yml", "-t", "linux", "^windows"]);
-    copy_manifest(&dirs.local);
+    copy_manifest(&dirs.local, "~/");
 
     let expected = "\
 [2/3] Link bashrc to ~/.bashrc.coliru
@@ -83,8 +83,8 @@ fn test_local_run_alternate_tag_rules_1() {
 [2/3] Run sh script.sh arg1 linux ^windows
 script.sh called with arg1 linux ^windows
 ";
-    assert_eq!(&stdout_to_string(&mut cmd), expected);
     assert_eq!(&stderr_to_string(&mut cmd), "");
+    assert_eq!(&stdout_to_string(&mut cmd), expected);
 
     // Assert files are correctly copied/linked/run
     write_file(&dirs.local.join("bashrc"), "bash #2");
@@ -106,7 +106,7 @@ script.sh called with arg1 linux ^windows
 fn test_local_run_alternate_tag_rules_2() {
     let (dirs, mut cmd) = setup_e2e("test_local_run_alternate_tag_rules_2");
     cmd.args(["manifest.yml", "-t", "macos"]);
-    copy_manifest(&dirs.local);
+    copy_manifest(&dirs.local, "~/");
 
     let expected = "\
 [1/3] Copy gitconfig to ~/.gitconfig.coliru
@@ -115,8 +115,8 @@ fn test_local_run_alternate_tag_rules_2() {
 [2/3] Run sh script.sh arg1 macos
 script.sh called with arg1 macos
 ";
-    assert_eq!(&stdout_to_string(&mut cmd), expected);
     assert_eq!(&stderr_to_string(&mut cmd), "");
+    assert_eq!(&stdout_to_string(&mut cmd), expected);
 
     // Assert files are correctly copied/linked/run
     write_file(&dirs.local.join("bashrc"), "bash #2");
@@ -139,7 +139,7 @@ script.sh called with arg1 macos
 fn test_local_dry_run() {
     let (dirs, mut cmd) = setup_e2e("test_local_dry_run");
     cmd.args(["manifest.yml", "--dry-run", "-t", "linux"]);
-    copy_manifest(&dirs.local);
+    copy_manifest(&dirs.local, "~/");
 
     let expected = "\
 [1/3] Copy gitconfig to ~/.gitconfig.coliru (DRY RUN)
@@ -147,8 +147,8 @@ fn test_local_dry_run() {
 [2/3] Link vimrc to ~/.vimrc.coliru (DRY RUN)
 [2/3] Run sh script.sh arg1 linux (DRY RUN)
 ";
-    assert_eq!(&stdout_to_string(&mut cmd), expected);
     assert_eq!(&stderr_to_string(&mut cmd), "");
+    assert_eq!(&stdout_to_string(&mut cmd), expected);
 
     // Assert files are correctly copied/linked/run
     let bash_exists = dirs.home.join(".bashrc.coliru").exists();
@@ -167,16 +167,16 @@ fn test_local_dry_run() {
 #[cfg(target_family = "windows")]
 fn test_local_dry_run() {
     let (dirs, mut cmd) = setup_e2e("test_local_dry_run");
-    cmd.args(["manifest-windows-test.yml", "--dry-run", "-t", "windows"]);
-    copy_manifest(&dirs.local);
+    cmd.args(["manifest.yml", "--dry-run", "-t", "windows"]);
+    copy_manifest(&dirs.local, "");
 
     let expected = "\
 [1/3] Copy gitconfig to .gitconfig.coliru (DRY RUN)
 [3/3] Link vimrc to _vimrc.coliru (DRY RUN)
 [3/3] Run  script.bat arg1 windows (DRY RUN)
 ";
-    assert_eq!(&stdout_to_string(&mut cmd), expected);
     assert_eq!(&stderr_to_string(&mut cmd), "");
+    assert_eq!(&stdout_to_string(&mut cmd), expected);
 
     // Assert files are correctly copied/linked/run
     let bash_exists = dirs.local.join(".bashrc.coliru").exists();
@@ -196,7 +196,7 @@ fn test_local_dry_run() {
 fn test_local_copy() {
     let (dirs, mut cmd) = setup_e2e("test_local_copy");
     cmd.args(["manifest.yml", "--copy", "-t", "linux"]);
-    copy_manifest(&dirs.local);
+    copy_manifest(&dirs.local, "~/");
 
     let expected = "\
 [1/3] Copy gitconfig to ~/.gitconfig.coliru
@@ -205,8 +205,8 @@ fn test_local_copy() {
 [2/3] Run sh script.sh arg1 linux
 script.sh called with arg1 linux
 ";
-    assert_eq!(&stdout_to_string(&mut cmd), expected);
     assert_eq!(&stderr_to_string(&mut cmd), "");
+    assert_eq!(&stdout_to_string(&mut cmd), expected);
 
     // Assert files are correctly copied/linked/run
     write_file(&dirs.local.join("bashrc"), "bash #2");
@@ -228,8 +228,8 @@ script.sh called with arg1 linux
 #[cfg(target_family = "windows")]
 fn test_local_copy() {
     let (dirs, mut cmd) = setup_e2e("test_local_copy");
-    cmd.args(["manifest-windows-test.yml", "--copy", "-t", "windows"]);
-    copy_manifest(&dirs.local);
+    cmd.args(["manifest.yml", "--copy", "-t", "windows"]);
+    copy_manifest(&dirs.local, "");
 
     let expected = "\
 [1/3] Copy gitconfig to .gitconfig.coliru
@@ -237,8 +237,8 @@ fn test_local_copy() {
 [3/3] Run  script.bat arg1 windows
 script.bat called with arg1 windows\r
 ";
-    assert_eq!(&stdout_to_string(&mut cmd), expected);
     assert_eq!(&stderr_to_string(&mut cmd), "");
+    assert_eq!(&stdout_to_string(&mut cmd), expected);
 
     // Assert files are correctly copied/linked/run
     write_file(&dirs.local.join("gitconfig"), "git #2");
@@ -260,7 +260,7 @@ script.bat called with arg1 windows\r
 fn test_local_run_failure() {
     let (dirs, mut cmd) = setup_e2e("test_local_run_failure");
     cmd.args(["manifest.yml", "-t", "linux"]);
-    copy_manifest(&dirs.local);
+    copy_manifest(&dirs.local, "~/");
     write_file(&dirs.local.join("script.sh"), "exit 1");
 
     let expected_stdout = "\
@@ -270,8 +270,8 @@ fn test_local_run_failure() {
 [2/3] Run sh script.sh arg1 linux
 ";
     let expected_stderr = "  Error: Process exited with exit status: 1\n";
-    assert_eq!(&stdout_to_string(&mut cmd), expected_stdout);
     assert_eq!(&stderr_to_string(&mut cmd), expected_stderr);
+    assert_eq!(&stdout_to_string(&mut cmd), expected_stdout);
 
     // Assert files are correctly copied/linked/run
     write_file(&dirs.local.join("bashrc"), "bash #2");
@@ -291,8 +291,8 @@ fn test_local_run_failure() {
 #[cfg(target_family = "windows")]
 fn test_local_run_failure() {
     let (dirs, mut cmd) = setup_e2e("test_local_run_failure");
-    cmd.args(["manifest-windows-test.yml", "-t", "windows"]);
-    copy_manifest(&dirs.local);
+    cmd.args(["manifest.yml", "-t", "windows"]);
+    copy_manifest(&dirs.local, "");
     write_file(&dirs.local.join("script.bat"), "@echo off\r\nexit 1");
 
     let expected_stdout = "\
@@ -301,8 +301,8 @@ fn test_local_run_failure() {
 [3/3] Run  script.bat arg1 windows
 ";
     let expected_stderr = "  Error: Process exited with exit code: 1\n";
-    assert_eq!(&stdout_to_string(&mut cmd), expected_stdout);
     assert_eq!(&stderr_to_string(&mut cmd), expected_stderr);
+    assert_eq!(&stdout_to_string(&mut cmd), expected_stdout);
 
     // Assert files are correctly copied/linked/run
     write_file(&dirs.local.join("gitconfig"), "git #2");
@@ -322,7 +322,7 @@ fn test_local_run_failure() {
 fn test_local_missing_file() {
     let (dirs, mut cmd) = setup_e2e("test_local_missing_file");
     cmd.args(["manifest.yml", "-t", "linux"]);
-    copy_manifest(&dirs.local);
+    copy_manifest(&dirs.local, "~/");
     remove_file(&dirs.local.join("vimrc")).unwrap();
 
     let expected_stdout = "\
@@ -332,10 +332,9 @@ fn test_local_missing_file() {
 [2/3] Run sh script.sh arg1 linux
 script.sh called with arg1 linux
 ";
-    let expected_stderr = "  Error: No such file or directory \
-                           (os error 2)\n";
-    assert_eq!(&stdout_to_string(&mut cmd), expected_stdout);
+    let expected_stderr = "  Error: No such file or directory (os error 2)\n";
     assert_eq!(&stderr_to_string(&mut cmd), expected_stderr);
+    assert_eq!(&stdout_to_string(&mut cmd), expected_stdout);
 
     // Assert files are correctly copied/linked/run
     write_file(&dirs.local.join("bashrc"), "bash #2");
@@ -352,8 +351,8 @@ script.sh called with arg1 linux
 #[cfg(target_family = "windows")]
 fn test_local_missing_file() {
     let (dirs, mut cmd) = setup_e2e("test_local_missing_file");
-    cmd.args(["manifest-windows-test.yml", "-t", "windows"]);
-    copy_manifest(&dirs.local);
+    cmd.args(["manifest.yml", "-t", "windows"]);
+    copy_manifest(&dirs.local, "");
     remove_file(&dirs.local.join("vimrc")).unwrap();
 
     let expected_stdout = "\
@@ -364,8 +363,8 @@ script.bat called with arg1 windows\r
 ";
     let expected_stderr = "  Error: The system cannot find the file specified. \
                            (os error 2)\n";
-    assert_eq!(&stdout_to_string(&mut cmd), expected_stdout);
     assert_eq!(&stderr_to_string(&mut cmd), expected_stderr);
+    assert_eq!(&stdout_to_string(&mut cmd), expected_stdout);
 
     // Assert files are correctly copied/linked/run
     write_file(&dirs.local.join("gitconfig"), "git #2");
