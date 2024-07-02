@@ -1,4 +1,5 @@
 use shellexpand::tilde_with_context;
+use std::fs::read_dir;
 use std::path::{MAIN_SEPARATOR_STR, PathBuf};
 use std::process::Command;
 use super::local::copy_file;
@@ -42,22 +43,29 @@ fn stage_file(src: &str, dst: &str, staging_dir: &str) -> Result<(), String> {
         .map_err(|why| why.to_string())
 }
 
-/// Recursively copy a directory to another machine via SCP
+/// Copy a directory to another machine via SCP and merge it with a destination
+/// directory
 #[allow(dead_code)]
 fn send_dir(src: &str, dst: &str, host: &str) -> Result<(), String> {
-    let mut cmd = Command::new("scp");
-    if cfg!(test) {
-        // SSH options and port for test server hard coded for now
-        cmd.args(["-o", "StrictHostKeyChecking=no", "-P", "2222"]);
-    }
-    cmd.args(["-r", src, &format!("{host}:{dst}")]);
+    // To avoid the source directory being copied as a subdirectory of the
+    // destination directory, we must send the contents of the directory
+    // item by item.
+    for item in read_dir(&src).map_err(|why| why.to_string())? {
+        let _src = item.map_err(|why| why.to_string())?.path();
 
-    let status = cmd.status().map_err(|why| why.to_string())?;
-    if status.success() {
-        Ok(())
-    } else {
-        Err(format!("SCP exited with {status}"))
+        let mut cmd = Command::new("scp");
+        if cfg!(test) {
+            // SSH options and port for test server hard coded for now
+            cmd.args(["-o", "StrictHostKeyChecking=no", "-P", "2222"]);
+        }
+        cmd.args(["-r", &_src.to_string_lossy(), &format!("{host}:{dst}")]);
+
+        let status = cmd.status().map_err(|why| why.to_string())?;
+        if !status.success() {
+            return Err(format!("SCP exited with {status}"));
+        }
     }
+    Ok(())
 }
 
 #[cfg(test)]
@@ -68,41 +76,6 @@ mod tests {
     use crate::common::{SSH_HOST, read_file, setup_integration, write_file};
 
     use std::fs;
-
-    #[test]
-    #[cfg(target_family = "unix")]
-    fn test_send_dir_basic() {
-        let tmp = setup_integration("test_send_dir_basic");
-
-        write_file(&tmp.local.join("foo"), "contents of foo");
-        write_file(&tmp.local.join("bar"), "contents of bar");
-
-        let result = send_dir(&tmp.local.to_str().unwrap(), "~/", SSH_HOST);
-
-        assert_eq!(result, Ok(()));
-        let contents1 = read_file(&tmp.ssh.join("foo"));
-        assert_eq!(contents1, "contents of foo");
-        let contents2 = read_file(&tmp.ssh.join("bar"));
-        assert_eq!(contents2, "contents of bar");
-    }
-
-    #[test]
-    #[cfg(target_family = "unix")]
-    fn test_send_dir_nested() {
-        let tmp = setup_integration("test_send_dir_nested");
-
-        write_file(&tmp.local.join("foo"), "contents of foo");
-        fs::create_dir_all(&tmp.local.join("dir")).unwrap();
-        write_file(&tmp.local.join("dir").join("bar"), "contents of bar");
-
-        let result = send_dir(tmp.local.to_str().unwrap(), "~/", SSH_HOST);
-
-        assert_eq!(result, Ok(()));
-        let contents1 = read_file(&tmp.ssh.join("foo"));
-        assert_eq!(contents1, "contents of foo");
-        let contents2 = read_file(&tmp.ssh.join("dir").join("bar"));
-        assert_eq!(contents2, "contents of bar");
-    }
 
     #[test]
     fn test_stage_file_tilde() {
@@ -156,5 +129,79 @@ mod tests {
         assert_eq!(result, Ok(()));
         assert_eq!(dst_real.exists(), true);
         assert_eq!(read_file(&dst_real), "contents of foo");
+    }
+
+    #[test]
+    #[cfg(target_family = "unix")]
+    fn test_send_dir_basic() {
+        let tmp = setup_integration("test_send_dir_basic");
+
+        write_file(&tmp.local.join("foo"), "contents of foo");
+        write_file(&tmp.local.join("bar"), "contents of bar");
+
+        let dst = "~/test_send_dir_basic";
+        let dst_foo = tmp.ssh.join("foo");
+        let dst_bar = tmp.ssh.join("bar");
+
+        let result = send_dir(tmp.local.to_str().unwrap(), dst, SSH_HOST);
+
+        assert_eq!(result, Ok(()));
+        assert_eq!(dst_foo.exists(), true);
+        assert_eq!(read_file(&dst_foo), "contents of foo");
+        assert_eq!(dst_bar.exists(), true);
+        assert_eq!(read_file(&dst_bar), "contents of bar");
+    }
+
+    #[test]
+    #[cfg(target_family = "unix")]
+    fn test_send_dir_nested_dir() {
+        let tmp = setup_integration("test_send_dir_nested_dir");
+
+        let src_foo = tmp.local.join("foo");
+        let src_bar = tmp.local.join("dir").join("bar");
+        write_file(&src_foo, "contents of foo");
+        fs::create_dir_all(&src_bar.parent().unwrap()).unwrap();
+        write_file(&src_bar, "contents of bar");
+
+        let dst = "~/test_send_dir_nested_dir";
+        let dst_foo = tmp.ssh.join("foo");
+        let dst_bar = tmp.ssh.join("dir").join("bar");
+
+        let result = send_dir(tmp.local.to_str().unwrap(), dst, SSH_HOST);
+
+        assert_eq!(result, Ok(()));
+        assert_eq!(dst_foo.exists(), true);
+        assert_eq!(read_file(&dst_foo), "contents of foo");
+        assert_eq!(dst_bar.exists(), true);
+        assert_eq!(read_file(&dst_bar), "contents of bar");
+    }
+
+    #[test]
+    #[cfg(target_family = "unix")]
+    fn test_send_dir_merge_dir() {
+        let tmp = setup_integration("test_send_dir_merge_dir");
+
+        let src_bar = tmp.local.join("dir").join("bar");
+        fs::create_dir_all(src_bar.parent().unwrap()).unwrap();
+        write_file(&src_bar, "new contents of bar");
+
+        let dst = "~/test_send_dir_merge_dir";
+        let dst_foo = tmp.ssh.join("foo");
+        let dst_bar = tmp.ssh.join("dir").join("bar");
+        let dst_baz = tmp.ssh.join("dir").join("baz");
+        write_file(&dst_foo, "old contents of foo");
+        fs::create_dir_all(&dst_bar.parent().unwrap()).unwrap();
+        write_file(&dst_bar, "old contents of bar");
+        write_file(&dst_baz, "old contents of baz");
+
+        let result = send_dir(tmp.local.to_str().unwrap(), dst, SSH_HOST);
+
+        assert_eq!(result, Ok(()));
+        assert_eq!(dst_foo.exists(), true);
+        assert_eq!(read_file(&dst_foo), "old contents of foo");
+        assert_eq!(dst_bar.exists(), true);
+        assert_eq!(read_file(&dst_bar), "new contents of bar");
+        assert_eq!(dst_baz.exists(), true);
+        assert_eq!(read_file(&dst_baz), "old contents of baz");
     }
 }
