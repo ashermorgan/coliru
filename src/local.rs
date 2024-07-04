@@ -50,25 +50,18 @@ fn prepare_path(path: &str) -> io::Result<PathBuf> {
     Ok(_dst)
 }
 
-/// Executes a local shell script, optionally with a command prefix or postfix.
-///
-/// Uses sh on Unix and PowerShell on Windows.
-pub fn run_script(path: &str, prefix: &str, postfix: &str) -> Result<(), String>
+/// Executes a local command using sh on Unix and cmd on Windows
+pub fn run_command(command: &str) -> Result<(), String>
 {
-    // Use absolute() to avoid incompatible "UNC" paths on Windows:
-    // https://github.com/rust-lang/rust/issues/42869
-    let _path = absolute(path).map_err(|why| why.to_string())?;
     let status;
     if cfg!(target_family = "unix") {
         status = Command::new("sh")
-            .arg("-c")
-            .arg(format!("{} {} {}", prefix, _path.display(), postfix))
+            .args(["-c", command])
             .status()
             .map_err(|why| why.to_string())?;
     } else {
-        status = Command::new("powershell")
-            .args(["-ExecutionPolicy", "Bypass", "-Command"])
-            .arg(format!("{} {} {}", prefix, _path.display(), postfix))
+        status = Command::new("cmd.exe")
+            .args(["/C", command])
             .status()
             .map_err(|why| why.to_string())?;
     }
@@ -277,39 +270,39 @@ mod tests {
 
     #[test]
     #[cfg(target_family = "unix")]
-    fn test_run_script_successful() {
-        let tmp = setup_integration("test_run_script_successful");
+    fn test_run_command_successful() {
+        let tmp = setup_integration("test_run_command_successful");
 
         let src = &tmp.local.join("foo");
         write_file(src, "exit 0");
 
-        let result = run_script(src.to_str().unwrap(), "sh", "");
+        let result = run_command(&format!("sh {}", src.to_str().unwrap()));
 
         assert_eq!(result.is_ok(), true);
     }
 
     #[test]
     #[cfg(target_family = "windows")]
-    fn test_run_script_successful() {
-        let tmp = setup_integration("test_run_script_successful");
+    fn test_run_command_successful() {
+        let tmp = setup_integration("test_run_command_successful");
 
         let src = &tmp.local.join("foo.bat");
         write_file(src, "exit 0");
 
-        let result = run_script(src.to_str().unwrap(), "", "");
+        let result = run_command(src.to_str().unwrap());
 
         assert_eq!(result.is_ok(), true);
     }
 
     #[test]
     #[cfg(target_family = "unix")]
-    fn test_run_script_failure() {
-        let tmp = setup_integration("test_run_script_failure");
+    fn test_run_command_failure() {
+        let tmp = setup_integration("test_run_command_failure");
 
         let src = &tmp.local.join("foo");
         write_file(src, "exit 2");
 
-        let result = run_script(src.to_str().unwrap(), "sh", "");
+        let result = run_command(&format!("sh {}", src.to_str().unwrap()));
 
         assert_eq!(result.is_ok(), false);
         assert_eq!(result.unwrap_err(), "Process exited with exit status: 2");
@@ -317,13 +310,13 @@ mod tests {
 
     #[test]
     #[cfg(target_family = "windows")]
-    fn test_run_script_failure() {
-        let tmp = setup_integration("test_run_script_failure");
+    fn test_run_command_failure() {
+        let tmp = setup_integration("test_run_command_failure");
 
         let src = &tmp.local.join("foo.bat");
         write_file(src, "exit 1");
 
-        let result = run_script(src.to_str().unwrap(), "", "");
+        let result = run_command(src.to_str().unwrap());
 
         assert_eq!(result.is_ok(), false);
         assert_eq!(result.unwrap_err(), "Process exited with exit code: 1");
@@ -331,14 +324,15 @@ mod tests {
 
     #[test]
     #[cfg(target_family = "unix")]
-    fn test_run_script_postfix() {
-        let tmp = setup_integration("test_run_script_postfix");
+    fn test_run_command_arguments() {
+        let tmp = setup_integration("test_run_command_arguments");
 
         let src = &tmp.local.join("foo");
         let dst = &tmp.local.join("bar");
         write_file(src, &format!("echo $@ > {}", dst.to_str().unwrap()));
 
-        let result = run_script(src.to_str().unwrap(), "sh", "arg1 arg2");
+        let result = run_command(&format!("sh {} arg1 arg2",
+                                          src.to_str().unwrap()));
 
         let contents = fs::read_to_string(dst).unwrap();
         assert_eq!(result.is_ok(), true);
@@ -347,14 +341,15 @@ mod tests {
 
     #[test]
     #[cfg(target_family = "windows")]
-    fn test_run_script_postfix() {
-        let tmp = setup_integration("test_run_script_postfix");
+    fn test_run_command_arguments() {
+        let tmp = setup_integration("test_run_command_arguments");
 
         let src = &tmp.local.join("foo.bat");
         let dst = &tmp.local.join("bar");
         write_file(src, &format!("echo %* > {}", dst.to_str().unwrap()));
 
-        let result = run_script(src.to_str().unwrap(), "", "arg1 arg2");
+        let result = run_command(&format!("{} arg1 arg2",
+                                          src.to_str().unwrap()));
 
         let contents = fs::read_to_string(dst).unwrap();
         assert_eq!(result.is_ok(), true);

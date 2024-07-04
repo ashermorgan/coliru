@@ -2,7 +2,7 @@ use std::env::set_current_dir;
 use std::path::Path;
 use super::manifest::{CopyLinkOptions, RunOptions, parse_manifest_file};
 use super::tags::tags_match;
-use super::local::{copy_file, link_file, run_script};
+use super::local::{copy_file, link_file, run_command};
 use super::ssh::{send_command, send_staged_files, stage_file};
 use tempfile::tempdir;
 
@@ -118,11 +118,11 @@ fn execute_runs(runs: &[RunOptions], tag_rules: &[String], host: &str,
 
     for run in runs {
         let postfix = run.postfix.replace("$COLIRU_RULES", &tag_rules.join(" "));
+        let cmd = format!("{} {} {}", run.prefix, run.src, postfix);
         if host == "" {
-            print!("{} Run {} {} {}", step_str, run.prefix, run.src, postfix);
+            print!("{} Run {}", step_str, cmd);
         } else {
-            print!("{} Run {} {} {} on {}", step_str, run.prefix, run.src,
-                   postfix, host);
+            print!("{} Run {} on {}", step_str, cmd, host);
         }
 
         if dry_run {
@@ -132,13 +132,12 @@ fn execute_runs(runs: &[RunOptions], tag_rules: &[String], host: &str,
         println!("");
 
         if host == "" {
-            if let Err(why) = run_script(&run.src, &run.prefix, &postfix) {
+            if let Err(why) = run_command(&cmd) {
                 eprintln!("  Error: {}", why);
             }
         } else {
-            let cmd = format!("cd .coliru && {} {} {}", &run.prefix, &run.src,
-                              &postfix);
-            if let Err(why) = send_command(&cmd, host) {
+            let ssh_cmd = format!("cd .coliru && {}", &cmd);
+            if let Err(why) = send_command(&ssh_cmd, host) {
                 eprintln!("  Error: {}", why);
             }
         }
