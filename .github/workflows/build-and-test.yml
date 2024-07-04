@@ -17,6 +17,11 @@ jobs:
     - name: Build
       run: cargo build --verbose
 
+    - name: Start SSH server
+      run: |
+        echo 'PUID=1001' > tests/server/.env
+        docker compose -f tests/server/compose.yml up -d
+
     - name: Run tests
       run: cargo test --verbose
 

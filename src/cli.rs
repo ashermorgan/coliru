@@ -14,6 +14,10 @@ struct Args {
     #[arg(short, long, num_args=0..)]
     pub tag_rules: Vec<String>,
 
+    /// Install dotfiles on another machine over SSH
+    #[arg(long, default_value="", hide_default_value=true)]
+    pub host: String,
+
     /// Interpret link commands as copy commands
     #[arg(short, long)]
     pub copy: bool,
@@ -27,6 +31,6 @@ struct Args {
 pub fn run() {
     let args = Args::parse();
     let manifest_path = Path::new(&args.manifest);
-    execute_manifest_file(&manifest_path, args.tag_rules, args.dry_run,
-                          args.copy);
+    execute_manifest_file(&manifest_path, args.tag_rules, &args.host,
+                          args.dry_run, args.copy);
 }

@@ -69,36 +69,39 @@ mod tests {
     #[test]
     #[cfg(target_family = "unix")]
     fn parse_manifest_file_missing() {
+        let manifest_path = Path::new("examples/test/missing.yml");
         let expected = "No such file or directory (os error 2)";
-        let actual = parse_manifest_file(Path::new("examples/missing.yml"));
+        let actual = parse_manifest_file(manifest_path);
         assert_eq!(actual, Err(String::from(expected)));
     }
 
     #[test]
     #[cfg(target_family = "windows")]
     fn parse_manifest_file_missing() {
+        let manifest_path = Path::new("examples/test/missing.yml");
         let exp = "The system cannot find the file specified. (os error 2)";
-        let actual = parse_manifest_file(Path::new("examples/missing.yml"));
+        let actual = parse_manifest_file(manifest_path);
         assert_eq!(actual, Err(String::from(exp)));
     }
 
     #[test]
     fn parse_manifest_file_invalid() {
-        let path = Path::new("examples/manifest-invalid.yml");
+        let manifest_path = Path::new("examples/test/invalid.yml");
         let exp = "steps[0].copy[0]: missing field `src` at line 5 column 7";
-        let actual = parse_manifest_file(path);
+        let actual = parse_manifest_file(manifest_path);
         assert_eq!(actual, Err(String::from(exp)));
     }
 
     #[test]
     fn parse_manifest_file_valid() {
+        let manifest_path = Path::new("examples/test/manifest.yml");
         let expected = Manifest {
             steps: vec![
                 Step {
                     copy: vec![
                         CopyLinkOptions {
                             src: String::from("gitconfig"),
-                            dst: String::from("~/.gitconfig.coliru"),
+                            dst: String::from("~/.gitconfig"),
                         },
                     ],
                     link: vec![],
@@ -114,16 +117,16 @@ mod tests {
                     link: vec![
                         CopyLinkOptions {
                             src: String::from("bashrc"),
-                            dst: String::from("~/.bashrc.coliru"),
+                            dst: String::from("~/.bashrc"),
                         },
                         CopyLinkOptions {
                             src: String::from("vimrc"),
-                            dst: String::from("~/.vimrc.coliru"),
+                            dst: String::from("~/.vimrc"),
                         },
                     ],
                     run: vec![
                         RunOptions {
-                            src: String::from("script.sh"),
+                            src: String::from("scripts/script.sh"),
                             prefix: String::from("sh"),
                             postfix: String::from("arg1 $COLIRU_RULES"),
                         },
@@ -135,12 +138,12 @@ mod tests {
                     link: vec![
                         CopyLinkOptions {
                             src: String::from("vimrc"),
-                            dst: String::from("~/_vimrc.coliru"),
+                            dst: String::from("~/_vimrc"),
                         },
                     ],
                     run: vec![
                         RunOptions {
-                            src: String::from("script.bat"),
+                            src: String::from("scripts/script.bat"),
                             prefix: String::from(""),
                             postfix: String::from("arg1 $COLIRU_RULES"),
                         },
@@ -148,9 +151,9 @@ mod tests {
                     tags: vec![String::from("windows")],
                 },
             ],
-            base_dir: PathBuf::from("examples"),
+            base_dir: PathBuf::from("examples/test"),
         };
-        let actual = parse_manifest_file(Path::new("examples/manifest.yml"));
+        let actual = parse_manifest_file(manifest_path);
         assert_eq!(actual, Ok(expected));
     }
 }

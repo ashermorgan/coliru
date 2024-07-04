@@ -2,20 +2,26 @@
 A minimal, flexible, dotfile installer
 
 ## Installation
-To install `coliru`, clone the repository and run `cargo install --path coliru/`
+To install coliru, clone the repository and run `cargo install --path coliru/`
 
-To uninstall `coliru`, run `cargo uninstall coliru`
+To uninstall coliru, run `cargo uninstall coliru`
 
 ## Usage
 Dotfiles are defined as a series of steps inside a manifest file that are
 executed conditionally based on tag rules. To install dotfiles, pass the
-manifest file and tag rules to `coliru`:
+manifest file and tag rules to coliru:
 
 ```
-coliru path/to/manifest.yml --tag-rules tag1 tag2,tag3 ^tag4
+coliru path/to/manifest.yml --tag-rules tag1 tag2 ^tag3
 ```
 
-Some helpful options include:
+Coliru can also install dotfiles on remote machines over SSH:
+
+```
+coliru path/to/manifest.yml --tag-rules tag1 tag2 ^tag3 --host user@hostname
+```
+
+Some other helpful options include:
 
 - `--help`, `-h`: Print full help information
 - `--dry-run`, `-n`: Do a trial run without any permanent changes
@@ -29,13 +35,13 @@ directory containing the manifest file. The copy command copies a file from a
 source (`src`) to a (`dst`). The link command links a file from a source (`src`)
 to a (`dst`) using symbolic links on Unix platforms and hard links on Windows.
 Finally, the run command executes a script (`src`) from the command line, using
-`sh` on Unix platforms and `powershell` on Windows, with an optional `prefix`
-(e.g. `python3`) or `postfix` (e.g. `arg1 arg2 arg3`) string. Inside `postfix`,
+`sh` on Unix platforms and `cmd` on Windows, with an optional `prefix` (e.g.
+`python3`) or `postfix` (e.g. `arg1 arg2 arg3`) string. Inside `postfix`,
 `$COLIRU_RULES` will be expanded into a space-delimited list of the current tag
 rules.
 
-Example YAML manifest (see [`examples/manifest.yml`](examples/manifest.yml) for
-more details):
+Example YAML manifest (see
+[`examples/basic/manifest.yml`](examples/basic/manifest.yml) for more details):
 
 ```yml
 steps:

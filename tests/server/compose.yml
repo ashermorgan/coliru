@@ -1,0 +1,13 @@
+services:
+  coliru-ssh:
+    environment:
+      - PUID # loaded from .env, =1000 by default
+    build:
+      context: .
+    ports:
+      - 2222:22
+    volumes:
+      - type: bind
+        source: ../.temp/ssh
+        target: /home/test
+    restart: unless-stopped

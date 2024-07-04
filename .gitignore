@@ -1,1 +1,7 @@
 /target
+
+# Temporary directories used for testing
+/tests/.temp/home/*
+/tests/.temp/local/*
+/tests/.temp/ssh/*
+!/tests/.temp/ssh/.gitkeep

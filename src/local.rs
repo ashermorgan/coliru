@@ -50,25 +50,18 @@ fn prepare_path(path: &str) -> io::Result<PathBuf> {
     Ok(_dst)
 }
 
-/// Executes a local shell script, optionally with a command prefix or postfix.
-///
-/// Uses sh on Unix and PowerShell on Windows.
-pub fn run_script(path: &str, prefix: &str, postfix: &str) -> Result<(), String>
+/// Executes a local command using sh on Unix and cmd on Windows
+pub fn run_command(command: &str) -> Result<(), String>
 {
-    // Use absolute() to avoid incompatible "UNC" paths on Windows:
-    // https://github.com/rust-lang/rust/issues/42869
-    let _path = absolute(path).map_err(|why| why.to_string())?;
     let status;
     if cfg!(target_family = "unix") {
         status = Command::new("sh")
-            .arg("-c")
-            .arg(format!("{} {} {}", prefix, _path.display(), postfix))
+            .args(["-c", command])
             .status()
             .map_err(|why| why.to_string())?;
     } else {
-        status = Command::new("powershell")
-            .args(["-ExecutionPolicy", "Bypass", "-Command"])
-            .arg(format!("{} {} {}", prefix, _path.display(), postfix))
+        status = Command::new("cmd.exe")
+            .args(["/C", command])
             .status()
             .map_err(|why| why.to_string())?;
     }
@@ -80,20 +73,16 @@ pub fn run_script(path: &str, prefix: &str, postfix: &str) -> Result<(), String>
 }
 
 #[cfg(test)]
-#[path = "../tests/common/mod.rs"]
-mod common;
-
-#[cfg(test)]
 mod tests {
     use super::*;
-    use common::{setup_integration, write_file};
+    use crate::common::{setup_integration, write_file};
 
     #[test]
     fn test_copy_file_create_dirs() {
         let tmp = setup_integration("test_copy_file_create_dirs");
 
-        let src = &tmp.dir.join("foo");
-        let dst = &tmp.dir.join("dir1").join("dir2").join("bar");
+        let src = &tmp.local.join("foo");
+        let dst = &tmp.local.join("dir1").join("dir2").join("bar");
         write_file(src, "old contents of foo");
 
         let result = copy_file(src.to_str().unwrap(), dst.to_str().unwrap());
@@ -108,8 +97,8 @@ mod tests {
     fn test_copy_file_same_file() {
         let tmp = setup_integration("test_copy_file_same_file");
 
-        let src = &tmp.dir.join("foo");
-        let dst = &tmp.dir.join("foo");
+        let src = &tmp.local.join("foo");
+        let dst = &tmp.local.join("foo");
         write_file(src, "contents of foo");
 
         let result = copy_file(src.to_str().unwrap(), dst.to_str().unwrap());
@@ -123,8 +112,8 @@ mod tests {
     fn test_copy_file_existing_file() {
         let tmp = setup_integration("test_copy_file_existing_file");
 
-        let src = &tmp.dir.join("foo");
-        let dst = &tmp.dir.join("bar");
+        let src = &tmp.local.join("foo");
+        let dst = &tmp.local.join("bar");
         write_file(src, "old contents of foo");
         write_file(dst, "old contents of bar");
 
@@ -141,8 +130,8 @@ mod tests {
     fn test_copy_file_existing_broken_symlink() {
         let tmp = setup_integration("test_copy_file_existing_broken_symlink");
 
-        let src = &tmp.dir.join("foo");
-        let dst = &tmp.dir.join("bar");
+        let src = &tmp.local.join("foo");
+        let dst = &tmp.local.join("bar");
         write_file(src, "old contents of foo");
         symlink("missing", dst).unwrap();
 
@@ -159,8 +148,8 @@ mod tests {
     fn test_copy_file_tilde_expansion() {
         let tmp = setup_integration("test_copy_file_tilde_expansion");
 
-        let src = &tmp.dir.join("foo");
-        let dst = &tmp.dir.join("dir").join("bar");
+        let src = &tmp.local.join("foo");
+        let dst = &tmp.home.join("dir").join("bar");
         let dst_tilde = "~/test_copy_file_tilde_expansion/dir/bar";
         write_file(src, "old contents of foo");
 
@@ -176,8 +165,8 @@ mod tests {
     fn test_link_file_create_dirs() {
         let tmp = setup_integration("test_link_file_create_dirs");
 
-        let src = &tmp.dir.join("foo");
-        let dst = &tmp.dir.join("dir1").join("dir2").join("bar");
+        let src = &tmp.local.join("foo");
+        let dst = &tmp.local.join("dir1").join("dir2").join("bar");
         write_file(src, "old contents of foo");
 
         let result = link_file(src.to_str().unwrap(), dst.to_str().unwrap());
@@ -192,8 +181,8 @@ mod tests {
     fn test_link_file_same_file() {
         let tmp = setup_integration("test_link_file_same_file");
 
-        let src = &tmp.dir.join("foo");
-        let dst = &tmp.dir.join("foo");
+        let src = &tmp.local.join("foo");
+        let dst = &tmp.local.join("foo");
         write_file(src, "contents of foo");
 
         let result = link_file(src.to_str().unwrap(), dst.to_str().unwrap());
@@ -207,8 +196,8 @@ mod tests {
     fn test_link_file_existing_file() {
         let tmp = setup_integration("test_link_file_existing_file");
 
-        let src = &tmp.dir.join("foo");
-        let dst = &tmp.dir.join("bar");
+        let src = &tmp.local.join("foo");
+        let dst = &tmp.local.join("bar");
         write_file(src, "old contents of foo");
         write_file(dst, "old contents of bar");
 
@@ -225,8 +214,8 @@ mod tests {
     fn test_link_file_existing_broken_symlink() {
         let tmp = setup_integration("test_link_file_existing_broken_symlink");
 
-        let src = &tmp.dir.join("foo");
-        let dst = &tmp.dir.join("bar");
+        let src = &tmp.local.join("foo");
+        let dst = &tmp.local.join("bar");
         write_file(src, "old contents of foo");
         symlink("missing", dst).unwrap();
 
@@ -243,8 +232,8 @@ mod tests {
     fn test_link_file_tilde_expansion() {
         let tmp = setup_integration("test_link_file_tilde_expansion");
 
-        let src = &tmp.dir.join("foo");
-        let dst = &tmp.dir.join("dir").join("bar");
+        let src = &tmp.local.join("foo");
+        let dst = &tmp.home.join("dir").join("bar");
         let dst_tilde = "~/test_link_file_tilde_expansion/dir/bar";
         write_file(src, "old contents of foo");
 
@@ -259,58 +248,61 @@ mod tests {
     #[test]
     #[cfg(target_family = "unix")]
     fn test_link_file_relative_source() {
-        let tmp = setup_integration("test_link_file_relative_source");
+        let dir = PathBuf::from("tests/.temp/ssh/test_link_file_relative_source");
+        fs::create_dir_all(&dir).unwrap();
 
-        let src = &tmp.dir.join("foo");
-        let src_rel = "test_link_file_relative_source/foo";
-        let dst = &tmp.dir.join("dir1").join("dir2").join("bar");
-        write_file(src, "old contents of foo");
+        let src = absolute(&dir.join("foo")).unwrap();
+        let src_rel = "tests/.temp/ssh/test_link_file_relative_source/foo";
+        let dst = &dir.join("dir1").join("dir2").join("bar");
+        write_file(&src, "old contents of foo");
 
         let result = link_file(src_rel, dst.to_str().unwrap());
 
-        write_file(src, "new contents of foo");
+        write_file(&src, "new contents of foo");
         let contents = fs::read_to_string(dst).unwrap();
         let link = fs::read_link(dst).unwrap();
         assert_eq!(result.is_ok(), true);
         assert_eq!(contents, "new contents of foo");
-        assert_eq!(&link, src); // src changed to absolute path
+        assert_eq!(link, src); // src changed to absolute path
+
+        fs::remove_dir_all(&dir).unwrap();
     }
 
     #[test]
     #[cfg(target_family = "unix")]
-    fn test_run_script_successful() {
-        let tmp = setup_integration("test_run_script_successful");
+    fn test_run_command_successful() {
+        let tmp = setup_integration("test_run_command_successful");
 
-        let src = &tmp.dir.join("foo");
+        let src = &tmp.local.join("foo");
         write_file(src, "exit 0");
 
-        let result = run_script(src.to_str().unwrap(), "sh", "");
+        let result = run_command(&format!("sh {}", src.to_str().unwrap()));
 
         assert_eq!(result.is_ok(), true);
     }
 
     #[test]
     #[cfg(target_family = "windows")]
-    fn test_run_script_successful() {
-        let tmp = setup_integration("test_run_script_successful");
+    fn test_run_command_successful() {
+        let tmp = setup_integration("test_run_command_successful");
 
-        let src = &tmp.dir.join("foo.bat");
+        let src = &tmp.local.join("foo.bat");
         write_file(src, "exit 0");
 
-        let result = run_script(src.to_str().unwrap(), "", "");
+        let result = run_command(src.to_str().unwrap());
 
         assert_eq!(result.is_ok(), true);
     }
 
     #[test]
     #[cfg(target_family = "unix")]
-    fn test_run_script_failure() {
-        let tmp = setup_integration("test_run_script_failure");
+    fn test_run_command_failure() {
+        let tmp = setup_integration("test_run_command_failure");
 
-        let src = &tmp.dir.join("foo");
+        let src = &tmp.local.join("foo");
         write_file(src, "exit 2");
 
-        let result = run_script(src.to_str().unwrap(), "sh", "");
+        let result = run_command(&format!("sh {}", src.to_str().unwrap()));
 
         assert_eq!(result.is_ok(), false);
         assert_eq!(result.unwrap_err(), "Process exited with exit status: 2");
@@ -318,13 +310,13 @@ mod tests {
 
     #[test]
     #[cfg(target_family = "windows")]
-    fn test_run_script_failure() {
-        let tmp = setup_integration("test_run_script_failure");
+    fn test_run_command_failure() {
+        let tmp = setup_integration("test_run_command_failure");
 
-        let src = &tmp.dir.join("foo.bat");
+        let src = &tmp.local.join("foo.bat");
         write_file(src, "exit 1");
 
-        let result = run_script(src.to_str().unwrap(), "", "");
+        let result = run_command(src.to_str().unwrap());
 
         assert_eq!(result.is_ok(), false);
         assert_eq!(result.unwrap_err(), "Process exited with exit code: 1");
@@ -332,14 +324,15 @@ mod tests {
 
     #[test]
     #[cfg(target_family = "unix")]
-    fn test_run_script_postfix() {
-        let tmp = setup_integration("test_run_script_postfix");
+    fn test_run_command_arguments() {
+        let tmp = setup_integration("test_run_command_arguments");
 
-        let src = &tmp.dir.join("foo");
-        let dst = &tmp.dir.join("bar");
+        let src = &tmp.local.join("foo");
+        let dst = &tmp.local.join("bar");
         write_file(src, &format!("echo $@ > {}", dst.to_str().unwrap()));
 
-        let result = run_script(src.to_str().unwrap(), "sh", "arg1 arg2");
+        let result = run_command(&format!("sh {} arg1 arg2",
+                                          src.to_str().unwrap()));
 
         let contents = fs::read_to_string(dst).unwrap();
         assert_eq!(result.is_ok(), true);
@@ -348,14 +341,15 @@ mod tests {
 
     #[test]
     #[cfg(target_family = "windows")]
-    fn test_run_script_postfix() {
-        let tmp = setup_integration("test_run_script_postfix");
+    fn test_run_command_arguments() {
+        let tmp = setup_integration("test_run_command_arguments");
 
-        let src = &tmp.dir.join("foo.bat");
-        let dst = &tmp.dir.join("bar");
+        let src = &tmp.local.join("foo.bat");
+        let dst = &tmp.local.join("bar");
         write_file(src, &format!("echo %* > {}", dst.to_str().unwrap()));
 
-        let result = run_script(src.to_str().unwrap(), "", "arg1 arg2");
+        let result = run_command(&format!("{} arg1 arg2",
+                                          src.to_str().unwrap()));
 
         let contents = fs::read_to_string(dst).unwrap();
         assert_eq!(result.is_ok(), true);
