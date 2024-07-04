@@ -1,0 +1,27 @@
+# Note: copy_manifest() updates replaces ~/ and scripts/ with unique paths for
+# ssh e2e tests and Windows tests to ensure test dotfiles are isolated
+
+steps:
+  - copy:
+    - src: gitconfig
+      dst: ~/.gitconfig
+    tags: [ windows, linux, macos ]
+
+  - link:
+    - src: bashrc
+      dst: ~/.bashrc
+    - src: vimrc
+      dst: ~/.vimrc
+    run:
+    - src: scripts/script.sh
+      prefix: sh
+      postfix: arg1 $COLIRU_RULES
+    tags: [ linux, macos ]
+
+  - link:
+    - src: vimrc
+      dst: ~/_vimrc
+    run:
+    - src: scripts/script.bat
+      postfix: arg1 $COLIRU_RULES
+    tags: [ windows ]

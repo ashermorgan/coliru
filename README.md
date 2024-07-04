@@ -34,8 +34,8 @@ Finally, the run command executes a script (`src`) from the command line, using
 `$COLIRU_RULES` will be expanded into a space-delimited list of the current tag
 rules.
 
-Example YAML manifest (see [`examples/manifest.yml`](examples/manifest.yml) for
-more details):
+Example YAML manifest (see
+[`examples/basic/manifest.yml`](examples/basic/manifest.yml) for more details):
 
 ```yml
 steps:
