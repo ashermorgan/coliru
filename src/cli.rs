@@ -14,6 +14,10 @@ struct Args {
     #[arg(short, long, num_args=0..)]
     pub tag_rules: Vec<String>,
 
+    /// Install dotfiles on another machine over SSH
+    #[arg(long, default_value="", hide_default_value=true)]
+    pub host: String,
+
     /// Interpret link commands as copy commands
     #[arg(short, long)]
     pub copy: bool,
@@ -21,10 +25,6 @@ struct Args {
     /// Do a trial run without any permanent changes
     #[arg(short = 'n', long)]
     pub dry_run: bool,
-
-    /// Install dotfiles on another machine via SSH
-    #[arg(long, default_value="", hide_default_value=true)]
-    pub host: String,
 }
 
 /// Runs the coliru CLI

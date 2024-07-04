@@ -20,9 +20,9 @@ Arguments:
 
 Options:
   -t, --tag-rules [<TAG_RULES>...]  The set of tag rules to enforce
+      --host <HOST>                 Install dotfiles on another machine over SSH
   -c, --copy                        Interpret link commands as copy commands
   -n, --dry-run                     Do a trial run without any permanent changes
-      --host <HOST>                 Install dotfiles on another machine via SSH
   -h, --help                        Print help
   -V, --version                     Print version
 ");

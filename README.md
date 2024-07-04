@@ -2,20 +2,26 @@
 A minimal, flexible, dotfile installer
 
 ## Installation
-To install `coliru`, clone the repository and run `cargo install --path coliru/`
+To install coliru, clone the repository and run `cargo install --path coliru/`
 
-To uninstall `coliru`, run `cargo uninstall coliru`
+To uninstall coliru, run `cargo uninstall coliru`
 
 ## Usage
 Dotfiles are defined as a series of steps inside a manifest file that are
 executed conditionally based on tag rules. To install dotfiles, pass the
-manifest file and tag rules to `coliru`:
+manifest file and tag rules to coliru:
 
 ```
-coliru path/to/manifest.yml --tag-rules tag1 tag2,tag3 ^tag4
+coliru path/to/manifest.yml --tag-rules tag1 tag2 ^tag3
 ```
 
-Some helpful options include:
+Coliru can also install dotfiles on remote machines over SSH:
+
+```
+coliru path/to/manifest.yml --tag-rules tag1 tag2 ^tag3 --host user@hostname
+```
+
+Some other helpful options include:
 
 - `--help`, `-h`: Print full help information
 - `--dry-run`, `-n`: Do a trial run without any permanent changes
