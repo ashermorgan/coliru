@@ -20,12 +20,16 @@ pub struct TempDirs {
 
     /// A temporary directory that is mounted to the SSH server under $HOME
     pub ssh: PathBuf,
+
+    /// A temporary directory that is mounted to the SSH server under ~/.coliru
+    pub ssh_cwd: PathBuf,
 }
 impl Drop for TempDirs {
     fn drop(&mut self) {
-        fs::remove_dir_all(&self.ssh).unwrap();
-        fs::remove_dir_all(&self.local).unwrap();
         fs::remove_dir_all(&self.home).unwrap();
+        fs::remove_dir_all(&self.local).unwrap();
+        fs::remove_dir_all(&self.ssh).unwrap();
+        fs::remove_dir_all(&self.ssh_cwd).unwrap();
     }
 }
 impl TempDirs {
@@ -36,16 +40,19 @@ impl TempDirs {
         let home = dir.join("home").join(name);
         let local = dir.join("local").join(name);
         let ssh = dir.join("ssh").join(name);
+        let ssh_cwd = dir.join("ssh").join(".coliru").join(name);
 
         assert_eq!(home.exists(), false);
         assert_eq!(local.exists(), false);
         assert_eq!(ssh.exists(), false);
+        assert_eq!(ssh_cwd.exists(), false);
 
         fs::create_dir_all(&home).unwrap();
         fs::create_dir_all(&local).unwrap();
         fs::create_dir_all(&ssh).unwrap();
+        fs::create_dir_all(&ssh_cwd).unwrap();
 
-        TempDirs { home, local, ssh }
+        TempDirs { home, local, ssh, ssh_cwd }
     }
 }
 

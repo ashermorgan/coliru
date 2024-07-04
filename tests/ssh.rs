@@ -27,7 +27,7 @@ script.sh called with arg1 linux
     let git_contents = read_file(&dirs.ssh.join(".gitconfig"));
     let vim1_contents = read_file(&dirs.ssh.join(".vimrc"));
     let vim2_exists = dirs.ssh.join("_vimrc").exists();
-    let log_contents = read_file(&dirs.ssh.join("log.txt"));
+    let log_contents = read_file(&dirs.ssh_cwd.join("log.txt"));
     assert_eq!(bash_contents, "bash #1\n");
     assert_eq!(git_contents, "git #1\n");
     assert_eq!(vim1_contents, "vim #1\n");
@@ -55,7 +55,7 @@ script.sh called with arg1 linux ^windows
     let git_exists = dirs.ssh.join(".gitconfig").exists();
     let vim1_contents = read_file(&dirs.ssh.join(".vimrc"));
     let vim2_exists = dirs.ssh.join("_vimrc").exists();
-    let log_contents = read_file(&dirs.ssh.join("log.txt"));
+    let log_contents = read_file(&dirs.ssh_cwd.join("log.txt"));
     assert_eq!(bash_contents, "bash #1\n");
     assert_eq!(git_exists, false);
     assert_eq!(vim1_contents, "vim #1\n");
@@ -84,7 +84,7 @@ script.sh called with arg1 macos
     let git_contents = read_file(&dirs.ssh.join(".gitconfig"));
     let vim1_contents = read_file(&dirs.ssh.join(".vimrc"));
     let vim2_exists = dirs.ssh.join("_vimrc").exists();
-    let log_contents = read_file(&dirs.ssh.join("log.txt"));
+    let log_contents = read_file(&dirs.ssh_cwd.join("log.txt"));
     assert_eq!(bash_contents, "bash #1\n");
     assert_eq!(git_contents, "git #1\n");
     assert_eq!(vim1_contents, "vim #1\n");
@@ -111,7 +111,7 @@ fn test_ssh_dry_run() {
     let git_exists = dirs.ssh.join(".gitconfig").exists();
     let vim1_exists = dirs.ssh.join(".vimrc").exists();
     let vim2_exists = dirs.ssh.join("_vimrc").exists();
-    let log_exists = dirs.ssh.join("log.txt").exists();
+    let log_exists = dirs.ssh_cwd.join("log.txt").exists();
     assert_eq!(bash_exists, false);
     assert_eq!(git_exists, false);
     assert_eq!(vim1_exists, false);
@@ -140,7 +140,7 @@ script.sh called with arg1 linux
     let git_contents = read_file(&dirs.ssh.join(".gitconfig"));
     let vim1_contents = read_file(&dirs.ssh.join(".vimrc"));
     let vim2_exists = dirs.ssh.join("_vimrc").exists();
-    let log_contents = read_file(&dirs.ssh.join("log.txt"));
+    let log_contents = read_file(&dirs.ssh_cwd.join("log.txt"));
     assert_eq!(bash_contents, "bash #1\n");
     assert_eq!(git_contents, "git #1\n");
     assert_eq!(vim1_contents, "vim #1\n");
@@ -197,7 +197,7 @@ script.sh called with arg1 linux
     // Assert files are correctly copied/run
     let bash_contents = read_file(&dirs.ssh.join(".bashrc"));
     let git_contents = read_file(&dirs.ssh.join(".gitconfig"));
-    let log_contents = read_file(&dirs.ssh.join("log.txt"));
+    let log_contents = read_file(&dirs.ssh_cwd.join("log.txt"));
     assert_eq!(bash_contents, "bash #1\n");
     assert_eq!(git_contents, "git #1\n");
     assert_eq!(log_contents, "script.sh called with arg1 linux\n");
