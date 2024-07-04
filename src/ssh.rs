@@ -22,7 +22,7 @@ pub fn stage_file(src: &str, dst: &str, staging_dir: &Path) -> Result<(), String
                             .into();
 
     // Resolve relative paths to home staging directory:
-    _dst = home_dir.join(_dst);
+    _dst = home_dir.join(".coliru").join(_dst);
 
     // Resolve other absolute paths to root staging directory:
     if !_dst.starts_with(home_dir) {
@@ -88,7 +88,6 @@ pub fn send_command(command: &str, host: &str) -> Result<(), String> {
         // SSH options and port for test server hard coded for now
         cmd.args(["-o", "StrictHostKeyChecking=no", "-p", "2222"]);
     }
-    println!("{host} {command} running");
     cmd.args([host, command]);
 
     let status = cmd.status().map_err(|why| why.to_string())?;
@@ -130,7 +129,8 @@ mod tests {
 
         let src = tmp.local.join("foo");
         let dst = "dir/bar";
-        let dst_real = tmp.local.join("home").join("dir").join("bar");
+        let dst_real = tmp.local.join("home").join(".coliru").join("dir")
+            .join("bar");
         let staging  = &tmp.local;
         write_file(&src, "contents of foo");
 

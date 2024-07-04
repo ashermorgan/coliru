@@ -3,7 +3,7 @@ use std::path::Path;
 use super::manifest::{CopyLinkOptions, RunOptions, parse_manifest_file};
 use super::tags::tags_match;
 use super::local::{copy_file, link_file, run_script};
-use super::ssh::{send_staged_files, stage_file};
+use super::ssh::{send_command, send_staged_files, stage_file};
 use tempfile::tempdir;
 
 /// Execute the steps in a coliru manifest file according to a set of tag rules
@@ -34,28 +34,30 @@ pub fn execute_manifest_file(path: &Path, tag_rules: Vec<String>, host: &str,
 
         let step_str = format!("[{}/{}]", i+1, manifest.steps.len());
 
-        if host == "" {
-            execute_copies(&step.copy, dry_run, &step_str);
-        } else {
-            execute_copies_remote(&step.copy, host, temp_dir.path(), dry_run,
-                                  &step_str);
-        }
+        execute_copies(&step.copy, host, temp_dir.path(), dry_run, &step_str);
+
         if !copy && host == "" {
             execute_links(&step.link, dry_run, &step_str);
-        } else if host != "" {
-            execute_copies_remote(&step.link, host, temp_dir.path(), dry_run,
-                                  &step_str);
         } else {
-            execute_copies(&step.link, dry_run, &step_str);
+            execute_copies(&step.link, host, temp_dir.path(), dry_run,
+                           &step_str);
         }
-        execute_runs(&step.run, &tag_rules, host, dry_run, &step_str);
+
+        execute_runs(&step.run, &tag_rules, host, temp_dir.path(), dry_run,
+                     &step_str);
     }
 }
 
-/// Execute a set of copy commands on the local machine
-fn execute_copies(copies: &[CopyLinkOptions], dry_run: bool, step_str: &str) {
+/// Execute a set of copy commands
+fn execute_copies(copies: &[CopyLinkOptions], host: &str, staging_dir: &Path,
+                  dry_run: bool, step_str: &str) {
+
     for copy in copies {
-        print!("{} Copy {} to {}", step_str, copy.src, copy.dst);
+        if host == "" {
+            print!("{} Copy {} to {}", step_str, copy.src, copy.dst);
+        } else {
+            print!("{} Copy {} to {}:{}", step_str, copy.src, host, copy.dst);
+        }
 
         if dry_run {
             println!(" (DRY RUN)");
@@ -63,27 +65,14 @@ fn execute_copies(copies: &[CopyLinkOptions], dry_run: bool, step_str: &str) {
         }
         println!("");
 
-        if let Err(why) = copy_file(&copy.src, &copy.dst) {
-            eprintln!("  Error: {}", why);
-        }
-    }
-}
-
-/// Execute a set of copy commands on a remote machine
-fn execute_copies_remote(copies: &[CopyLinkOptions], host: &str,
-                         staging_dir: &Path, dry_run: bool, step_str: &str) {
-
-    for copy in copies {
-        print!("{} Copy {} to {}:{}", step_str, copy.src, host, copy.dst);
-
-        if dry_run {
-            println!(" (DRY RUN)");
-            continue;
-        }
-        println!("");
-
-        if let Err(why) = stage_file(&copy.src, &copy.dst, staging_dir) {
-            eprintln!("  Error: {}", why);
+        if host == "" {
+            if let Err(why) = copy_file(&copy.src, &copy.dst) {
+                eprintln!("  Error: {}", why);
+            }
+        } else {
+            if let Err(why) = stage_file(&copy.src, &copy.dst, staging_dir) {
+                eprintln!("  Error: {}", why);
+            }
         }
     }
 
@@ -94,7 +83,7 @@ fn execute_copies_remote(copies: &[CopyLinkOptions], host: &str,
     }
 }
 
-/// Execute a set of link commands on the local machine
+/// Execute a set of link commands
 fn execute_links(links: &[CopyLinkOptions], dry_run: bool, step_str: &str) {
     for link in links {
         print!("{} Link {} to {}", step_str, link.src, link.dst);
@@ -111,9 +100,21 @@ fn execute_links(links: &[CopyLinkOptions], dry_run: bool, step_str: &str) {
     }
 }
 
-/// Execute a set of run commands on the local machine
+/// Execute a set of run commands
 fn execute_runs(runs: &[RunOptions], tag_rules: &[String], host: &str,
-                dry_run: bool, step_str: &str) {
+                staging_dir: &Path, dry_run: bool, step_str: &str) {
+
+    if !dry_run && host != "" {
+        for run in runs {
+            if let Err(why) = stage_file(&run.src, &run.src, staging_dir) {
+                eprintln!("Error: {}", why);
+            }
+        }
+
+        if let Err(why) = send_staged_files(staging_dir, host) {
+            eprintln!("Error: {}", why);
+        }
+    }
 
     for run in runs {
         let postfix = run.postfix.replace("$COLIRU_RULES", &tag_rules.join(" "));
@@ -135,7 +136,11 @@ fn execute_runs(runs: &[RunOptions], tag_rules: &[String], host: &str,
                 eprintln!("  Error: {}", why);
             }
         } else {
-            eprintln!("  Error: not implemented");
+            let cmd = format!("cd .coliru && {} {} {}", &run.prefix, &run.src,
+                              &postfix);
+            if let Err(why) = send_command(&cmd, host) {
+                eprintln!("  Error: {}", why);
+            }
         }
     }
 }

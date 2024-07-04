@@ -115,7 +115,7 @@ pub fn setup_e2e_ssh(name: &str) -> (TempDirs, Command) {
 /// scripts/*) will be replaced with the value of home_dir and script_dir
 /// respectively to ensures that dotfiles are isolated across tests when
 /// necessary.
-pub fn copy_manifest(dir: &Path, home_dir: &str, script_dir: &str) {
+fn copy_manifest(dir: &Path, home_dir: &str, script_dir: &str) {
     let examples = env::current_exe().unwrap().parent().unwrap().to_path_buf()
         .join("../../../examples/test");
 
