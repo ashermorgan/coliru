@@ -1,3 +1,5 @@
+//! Manifest execution functions
+
 use std::env::set_current_dir;
 use std::path::Path;
 use super::manifest::{CopyLinkOptions, RunOptions, parse_manifest_file};

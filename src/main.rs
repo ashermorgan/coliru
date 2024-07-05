@@ -1,3 +1,5 @@
+//! A minimal, flexible, dotfile installer
+
 mod cli;
 mod core;
 mod local;
@@ -6,8 +8,8 @@ mod ssh;
 mod tags;
 
 #[cfg(test)]
-#[path = "../tests/common/mod.rs"]
-mod common; // Re-use e2e test utils for integration tests
+#[path = "../tests/test_utils/mod.rs"]
+mod test_utils; // Re-use E2E test utils for integration tests
 
 fn main() {
     cli::run();

@@ -1,3 +1,11 @@
+//! Coliru testing utilities
+//!
+//! These utilities create and manage resources used in integration and
+//! end-to-end tests, including temporary directories, processes running coliru
+//! commands, and test dotfile repositories. There are also functions for basic
+//! I/O and capturing command output. All temporary directories are located
+//! under the `.temp` directory and are unique to each test according to name.
+
 #![allow(dead_code)]
 
 use std::env;
@@ -12,16 +20,18 @@ pub const SSH_HOST: &str = "test@localhost"; // TODO: add explicit port
 /// A set of temporary directories that are automatically deleted when the value
 /// is dropped
 pub struct TempDirs {
-    /// A temporary directory that is located at or in $HOME on Unix
+    /// A temporary directory that is located at or in `~/` on Unix
     pub home: PathBuf,
 
-    /// A temporary directory that is located at or under the CWD
+    /// A temporary directory that is located at or under the current working
+    /// directory
     pub local: PathBuf,
 
-    /// A temporary directory that is mounted to the SSH server under $HOME
+    /// A temporary directory that is mounted to the SSH server under `~/`
     pub ssh: PathBuf,
 
-    /// A temporary directory that is mounted to the SSH server under ~/.coliru
+    /// A temporary directory that is mounted to the SSH server under
+    /// `~/.coliru`
     pub ssh_cwd: PathBuf,
 }
 impl Drop for TempDirs {
@@ -33,8 +43,14 @@ impl Drop for TempDirs {
     }
 }
 impl TempDirs {
+    /// Creates a new set of temporary directories with a certain name
+    ///
+    /// ```
+    /// let dirs = TempDirs::new("test_foo");
+    /// ```
     fn new(name: &str) -> TempDirs {
-        // The CWD of the current process is always the repository root
+        // The working directory of the main process is always the repository
+        // root
         let dir = env::current_dir().unwrap().join("tests").join(".temp");
 
         let home = dir.join("home").join(name);
@@ -58,9 +74,13 @@ impl TempDirs {
 
 /// Initializes temporary directories for integration tests
 ///
-/// On Unix, $HOME is set to the parent directory of the home temporary
+/// On Unix, `$HOME` is set to the parent directory of the home temporary
 /// directory, which is the same for all integration tests. This prevents issues
 /// when tests are run in multiple threads.
+///
+/// ```
+/// let dirs = setup_integration("test_foo");
+/// ```
 pub fn setup_integration(name: &str) -> TempDirs {
     let dirs = TempDirs::new(name);
     if cfg!(target_family = "unix") {
@@ -69,10 +89,15 @@ pub fn setup_integration(name: &str) -> TempDirs {
     dirs
 }
 
-/// Initializes temporary directories and a coliru Command for e2e tests
+/// Initializes temporary directories and a coliru Command for E2E tests
 ///
-/// The Command's CWD is set to the local temporary directory, and on Unix, the
-/// Command's $HOME variable is set to the home temporary directory.
+/// The Command's working directory is set to the local temporary directory, and
+/// on Unix, the Command's `$HOME` variable is set to the home temporary
+/// directory.
+///
+/// ```
+/// let (dirs, cmd) = setup_e2e("test_foo");
+/// ```
 fn setup_e2e(name: &str) -> (TempDirs, Command) {
     let dirs = TempDirs::new(name);
 
@@ -87,10 +112,16 @@ fn setup_e2e(name: &str) -> (TempDirs, Command) {
     (dirs, cmd)
 }
 
-/// Initializes temporary directories and a coliru Command for local e2e tests
+/// Initializes temporary directories and a coliru Command for local E2E tests
 ///
-/// A test dotfile repo is copied to the local folder, to be installed to $HOME
-/// on Unix and CWD on Windows.
+/// A test dotfile repository is copied to the working directory (mapped to the
+/// `local` temporary directory), to be installed to the home directory on Unix
+/// (mapped to the `home` temporary directory) and the current working directory
+/// on Windows (mapped to the `local` temporary directory).
+///
+/// ```
+/// let (dirs, cmd) = setup_e2e_local("test_foo");
+/// ```
 pub fn setup_e2e_local(name: &str) -> (TempDirs, Command) {
     let (dirs, cmd) = setup_e2e(name);
 
@@ -101,11 +132,17 @@ pub fn setup_e2e_local(name: &str) -> (TempDirs, Command) {
     (dirs, cmd)
 }
 
-/// Initializes temporary directories and a coliru Command for ssh e2e tests
+/// Initializes temporary directories and a coliru Command for SSH E2E tests
 ///
-/// A test dotfile repo is copied to the local folder, to be installed to
-/// ~/test_name/ with scripts copied to ~/.coliru/test_name/, and the --host
-/// argument is set to the test SSH server.
+/// A test dotfile repository is copied to the working directory (mapped to the
+/// `local` temporary directory), to be installed over SSH to `~/test_name/`
+/// (mapped to the `ssh` temporary directory), with scripts copied to
+/// `~/.coliru/test_name/` (mapped to the `ssh_cwd` temporary directory). The
+/// `--host` flag is set to the test SSH server.
+///
+/// ```
+/// let (dirs, cmd) = setup_e2e_ssh("test_foo");
+/// ```
 pub fn setup_e2e_ssh(name: &str) -> (TempDirs, Command) {
     let (dirs, mut cmd) = setup_e2e(name);
     cmd.args(["--host", SSH_HOST]);
@@ -116,12 +153,16 @@ pub fn setup_e2e_ssh(name: &str) -> (TempDirs, Command) {
     (dirs, cmd)
 }
 
-/// Create a basic manifest file and its associated dotfiles in a directory
+/// Initializes a basic dotfiles repository in a directory
 ///
-/// All occurrences of the string "~/" and "scripts/" (e.g. in manifest.yml and
-/// scripts/*) will be replaced with the value of home_dir and script_dir
-/// respectively to ensures that dotfiles are isolated across tests when
-/// necessary.
+/// The dotfiles from `examples/test/` are used as a starting template. All
+/// occurrences of `~/` and `scripts/` are replaced with `home_dir` and
+/// `script_dir`, respectively, to allow dotfiles to be isolated across tests
+/// when necessary.
+///
+/// ```
+/// copy_manifest(&Path::new("/tmp/dotfiles/"), "~/", "scripts/");
+/// ```
 fn copy_manifest(dir: &Path, home_dir: &str, script_dir: &str) {
     let examples = env::current_exe().unwrap().parent().unwrap().to_path_buf()
         .join("../../../examples/test");
@@ -144,23 +185,23 @@ fn copy_manifest(dir: &Path, home_dir: &str, script_dir: &str) {
 
 }
 
-/// Writes a string to a file, overwriting it if it already exists.
+/// Writes a string to a file, overwriting it if it already exists
 pub fn write_file(path: &Path, contents: &str) {
     let mut file = fs::File::create(path).unwrap();
     file.write_all(contents.as_bytes()).unwrap();
 }
 
-/// Reads the contents of a file into a string.
+/// Reads the contents of a file into a string
 pub fn read_file(path: &Path) -> String {
     fs::read_to_string(path).unwrap()
 }
 
-/// Returns the stdout of a command as a String.
+/// Returns the stdout of a command as a String
 pub fn stdout_to_string(cmd: &mut Command) -> String {
     String::from_utf8_lossy(&cmd.output().unwrap().stdout).into_owned()
 }
 
-/// Returns the stderr of a command as a String.
+/// Returns the stderr of a command as a String
 pub fn stderr_to_string(cmd: &mut Command) -> String {
     String::from_utf8_lossy(&cmd.output().unwrap().stderr).into_owned()
 }

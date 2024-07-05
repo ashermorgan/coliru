@@ -1,9 +1,8 @@
-/// End to end tests that do not test general CLI behavior rather than specific
-/// installation behavior
+//! End to end tests that test general, non-installation, CLI behavior
 
-mod common;
+mod test_utils;
 
-use common::*;
+use test_utils::*;
 use std::env::consts::EXE_SUFFIX;
 
 #[test]

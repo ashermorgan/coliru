@@ -1,16 +1,48 @@
+//! Remote dotfile installation utilities
+//!
+//! To send files to a remote machine via SCP, first stage them using
+//! [`stage_file`], then transfer them using [`send_staged_files`].
+//!
+//! ```
+//! let staging_dir = Path::new("/tmp/staging");
+//! let host = "user@hostname";
+//! stage_file("foo.sh", "~/foo.sh", staging_dir);
+//! send_staged_files(staging_dir, host);
+//! send_command("bash ~/foo.sh", host);
+//! ```
+
 use shellexpand::tilde_with_context;
 use std::fs::{read_dir, remove_dir_all};
 use std::path::{MAIN_SEPARATOR_STR, Path, PathBuf};
 use std::process::Command;
 use super::local::copy_file;
 
-/// Copy a file to an SCP staging directory
+/// Copies a file to an SCP staging directory
 ///
-/// The destination directory structure will be recreated in the staging
-/// directory under either the home or root subdirectories. This staging system
-/// allows missing directories to be created automatically on the remote
-/// machine.
+/// Tildes will be expanded to the remote user's home directory. Relative paths
+/// are interpreted relative to `~/.coliru`.
+///
+/// ```
+/// // Prepare to transfer foo to ~/foo, bar to /bar, and baz to ~/.coliru/baz
+/// let staging_dir = Path::new("/tmp/staging");
+/// stage_file("foo", "~/foo", staging_dir);
+/// stage_file("bar", "/bar", staging_dir);
+/// stage_file("baz", "baz", staging_dir);
+/// ```
+
 pub fn stage_file(src: &str, dst: &str, staging_dir: &Path) -> Result<(), String> {
+    // Staging directories are used to copy multiple files at once while
+    // automatically creating missing directories on the remote machine. The
+    // example code above produces the following staging directory layout:
+    //
+    // /tmp/staging/
+    // ├── home/
+    // │   ├── .coliru
+    // │   │   └── baz
+    // │   └── foo
+    // └── root/
+    //     └── bar
+
     let home_dir = staging_dir.join("home");
     let root_dir = staging_dir.join("root");
     let get_home_dir = || {
@@ -41,7 +73,15 @@ pub fn stage_file(src: &str, dst: &str, staging_dir: &Path) -> Result<(), String
         .map_err(|why| why.to_string())
 }
 
-/// Transfer the files in an SCP staging directory to a remote machine
+/// Transfers the files in an SCP staging directory to a remote machine
+///
+/// `host` may be an SSH alias or a string in the form `user@hostname`. Use
+/// [`stage_file`] to produce a staging directory. The contents of the staging
+/// directory are deleted after they are successfully transferred.
+///
+/// ```
+/// send_staged_files(Path::new("/tmp/staging"), "user@hostname");
+/// ```
 pub fn send_staged_files(staging_dir: &Path, host: &str) -> Result<(), String> {
     let home_dir = staging_dir.join("home");
     if home_dir.exists() {
@@ -56,8 +96,14 @@ pub fn send_staged_files(staging_dir: &Path, host: &str) -> Result<(), String> {
     Ok(())
 }
 
-/// Copy a directory to another machine via SCP and merge it with a destination
-/// directory
+/// Copies a directory to another machine via SCP and merges it with a
+/// destination directory
+///
+/// `host` may be an SSH alias or a string in the form `user@hostname`.
+///
+/// ```
+/// send_dir("new_home", "~/", "user@hostname");
+/// ```
 fn send_dir(src: &str, dst: &str, host: &str) -> Result<(), String> {
     // To avoid the source directory being copied as a subdirectory of the
     // destination directory, we must send the contents of the directory
@@ -80,8 +126,13 @@ fn send_dir(src: &str, dst: &str, host: &str) -> Result<(), String> {
     Ok(())
 }
 
-/// Execute a command on another machine via SSH
-#[allow(dead_code)]
+/// Executes a command on another machine via SSH
+///
+/// `host` may be an SSH alias or a string in the form `user@hostname`.
+///
+/// ```
+/// send_command("echo 'Hello World'");
+/// ```
 pub fn send_command(command: &str, host: &str) -> Result<(), String> {
     let mut cmd = Command::new("ssh");
     if host == "test@localhost" {
@@ -102,7 +153,7 @@ mod tests {
     #![allow(unused_imports)]
 
     use super::*;
-    use crate::common::{SSH_HOST, read_file, setup_integration, write_file};
+    use crate::test_utils::{SSH_HOST, read_file, setup_integration, write_file};
 
     use std::fs;
 

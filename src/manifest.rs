@@ -1,52 +1,78 @@
+//! Coliru manifest parsing
+
 use serde::Deserialize;
 use serde_yaml;
 use std::fs::read_to_string;
 use std::path::{Path, PathBuf};
 
+/// The options for a copy or link command
 #[derive(Debug, PartialEq, Deserialize)]
 pub struct CopyLinkOptions {
+    /// The source file (relative to the parent manifest file)
     pub src: String,
+
+    /// The destination path (relative to the parent manifest file)
     pub dst: String,
 }
 
+/// The options for a run command
 #[derive(Debug, PartialEq, Deserialize)]
 pub struct RunOptions {
+    /// The location of the script (relative to the parent manifest file)
     pub src: String,
 
+    /// The optional shell command prefix
     #[serde(default)]
     pub prefix: String,
 
+    /// The optional shell command postfix
     #[serde(default)]
     pub postfix: String,
 }
 
+/// A manifest step
 #[derive(Debug, PartialEq, Deserialize)]
 pub struct Step {
+    /// The step's copy commands
     #[serde(default)]
     pub copy: Vec<CopyLinkOptions>,
 
+    /// The step's link commands
     #[serde(default)]
     pub link: Vec<CopyLinkOptions>,
 
+    /// The step's run commands
     #[serde(default)]
     pub run: Vec<RunOptions>,
 
+    /// The step's tags
     #[serde(default)]
     pub tags: Vec<String>,
 }
 
+/// A coliru manifest as it appears in a file, without the base_dir property
 #[derive(Debug, PartialEq, Deserialize)]
 struct RawManifest {
+
+    /// The manifest steps
     steps: Vec<Step>,
 }
 
+/// A parsed coliru manifest
 #[derive(Debug, PartialEq)]
 pub struct Manifest {
+    /// The manifest steps
     pub steps: Vec<Step>,
+
+    /// The parent directory of the manifest file
     pub base_dir: PathBuf,
 }
 
 /// Parse a coliru YAML manifest file
+///
+/// ```
+/// let manifest = parse_manifest_file(Path::new("manifest.yml"))?;
+/// ```
 pub fn parse_manifest_file(path: &Path) -> Result<Manifest, String> {
     let raw_str = read_to_string(path).map_err(|why| why.to_string())?;
     let raw_manifest = serde_yaml::from_str::<RawManifest>(&raw_str)

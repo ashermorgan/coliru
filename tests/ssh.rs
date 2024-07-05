@@ -1,9 +1,8 @@
-/// End to end tests that test specific installation behavior on a remote
-/// machine via SSH
+//! End to end tests that test installation behavior on a remote machine via SSH
 
-mod common;
+mod test_utils;
 
-use common::*;
+use test_utils::*;
 use std::fs::remove_file;
 
 #[test]

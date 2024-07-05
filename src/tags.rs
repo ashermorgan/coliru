@@ -1,11 +1,6 @@
+//! Tag rule matching functionality
+
 /// Checks if a list of tags matches a list of tag rules
-///
-/// Rules and tags are both specified as strings. Each rule contains one or more
-/// desired tags separated by `,`. A list of tags matches a list of rules if
-/// each rule contains at least one tag that appears in the list of tags. The
-/// results of rules prefixed with `^` will be negated. Any list of tags will
-/// match an empty list of tag rules. An empty list of tags will only match an
-/// empty list of tag rules.
 ///
 /// ```
 /// let rules = ["linux,macos", "system", "^work"];

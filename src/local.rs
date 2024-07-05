@@ -1,3 +1,11 @@
+//! Local dotfile installation utilities
+//!
+//! ```
+//! copy_file("foo", "~/foo");
+//! link_file("bar", "~/bar");
+//! run_command("echo 'Hello world'");
+//! ```
+
 use shellexpand::tilde;
 use std::io;
 use std::fs;
@@ -6,10 +14,14 @@ use std::os::unix::fs::symlink;
 use std::path::{PathBuf, absolute};
 use std::process::Command;
 
-/// Copies the contents of a local file to another local file.
+/// Copies the contents of a file to another file
 ///
 /// Tildes are expanded if present and the destination file is overwritten if
 /// necessary.
+///
+/// ```
+/// copy_file("foo", "~/foo");
+/// ```
 pub fn copy_file(src: &str, dst: &str) -> io::Result<()> {
     if absolute(src)? == absolute(dst)? { return Ok(()); }
     let _dst = prepare_path(dst)?;
@@ -17,10 +29,14 @@ pub fn copy_file(src: &str, dst: &str) -> io::Result<()> {
     Ok(())
 }
 
-/// Creates a symbolic link to a local file.
+/// Creates a symbolic link to a file
 ///
 /// Tildes are expanded if present and the destination file is overwritten if
 /// necessary. On non-Unix platforms, a hard link will be created instead.
+///
+/// ```
+/// link_file("bar", "~/bar");
+/// ```
 #[cfg(target_family = "unix")]
 pub fn link_file(src: &str, dst: &str) -> io::Result<()> {
     if absolute(src)? == absolute(dst)? { return Ok(()); }
@@ -36,8 +52,12 @@ pub fn link_file(src: &str, dst: &str) -> io::Result<()> {
     Ok(())
 }
 
-/// Creates the parent directories of a path and return the path with tildes
-/// expanded.
+/// Creates the parent directories of a path, deletes the file if it exists, and
+/// returns the path with tildes expanded
+///
+/// ```
+/// prepare_path("~/foo");
+/// ```
 fn prepare_path(path: &str) -> io::Result<PathBuf> {
     let _dst: PathBuf = (&tilde(path).to_mut()).into();
     if let Some(_path) = _dst.parent() {
@@ -50,7 +70,11 @@ fn prepare_path(path: &str) -> io::Result<PathBuf> {
     Ok(_dst)
 }
 
-/// Executes a local command using sh on Unix and cmd on Windows
+/// Executes a command using `sh` on Unix and `cmd` on Windows
+///
+/// ```
+/// run_command("echo 'Hello world'");
+/// ```
 pub fn run_command(command: &str) -> Result<(), String>
 {
     let status;
@@ -75,7 +99,7 @@ pub fn run_command(command: &str) -> Result<(), String>
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::common::{setup_integration, write_file};
+    use crate::test_utils::{setup_integration, write_file};
 
     #[test]
     fn test_copy_file_create_dirs() {

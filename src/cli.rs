@@ -1,8 +1,10 @@
+//! The coliru command line interface
+
 use clap::{Parser, ColorChoice};
 use std::path::Path;
 use super::core::execute_manifest_file;
 
-/// Stores arguments to the coliru CLI
+/// Arguments to the coliru CLI
 #[derive(Parser, Debug)]
 #[command(version, color=ColorChoice::Never,
           about="A minimal, flexible, dotfile installer")]
