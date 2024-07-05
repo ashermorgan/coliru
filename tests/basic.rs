@@ -15,15 +15,22 @@ A minimal, flexible, dotfile installer
 Usage: coliru{EXE_SUFFIX} [OPTIONS] <MANIFEST>
 
 Arguments:
-  <MANIFEST>  The path to the coliru YAML manifest file
+  <MANIFEST>  The path to the coliru manifest file
 
 Options:
-  -t, --tag-rules [<TAG_RULES>...]  The set of tag rules to enforce
-      --host <HOST>                 Install dotfiles on another machine over SSH
-  -c, --copy                        Interpret link commands as copy commands
-  -n, --dry-run                     Do a trial run without any permanent changes
-  -h, --help                        Print help
-  -V, --version                     Print version
+  -t, --tag-rules [<RULE>...]  The set of tag rules to enforce
+  -n, --dry-run                Do a trial run without any permanent changes
+      --host <HOST>            Install dotfiles on another machine over SSH
+      --copy                   Interpret link commands as copy commands
+  -h, --help                   Print help
+  -V, --version                Print version
+
+Examples:
+  # Install dotfiles from manifest.yml with tags matching A && (B || C) && !D
+  coliru manifest.yml --tag-rules A B,C ^D
+
+  # Install dotfiles from manifest.yml to user@hostname over SSH
+  coliru manifest.yml --tag-rules A B,C ^D --host user@hostname
 ");
     assert_eq!(stdout_to_string(&mut cmd), expected);
     assert_eq!(&stderr_to_string(&mut cmd), "");
