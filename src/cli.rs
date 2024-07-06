@@ -45,6 +45,15 @@ struct Args {
 pub fn run() {
     let args = Args::parse();
     let manifest_path = Path::new(&args.manifest);
-    execute_manifest_file(&manifest_path, args.tag_rules, &args.host,
-                          args.dry_run, args.copy);
+
+    match execute_manifest_file(&manifest_path, args.tag_rules, &args.host,
+                                args.dry_run, args.copy) {
+        Err(why) => {
+            eprintln!("Error: {}", why);
+            std::process::exit(2);
+        },
+        Ok(minor_errors) => {
+            std::process::exit(if minor_errors { 1 } else { 0 });
+        },
+    }
 }

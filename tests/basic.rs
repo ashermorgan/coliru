@@ -32,8 +32,30 @@ Examples:
   # Install dotfiles from manifest.yml to user@hostname over SSH
   coliru manifest.yml --tag-rules A B,C ^D --host user@hostname
 ");
-    assert_eq!(stdout_to_string(&mut cmd), expected);
-    assert_eq!(&stderr_to_string(&mut cmd), "");
+    let (stdout, stderr, exitcode) = run_command(&mut cmd);
+    assert_eq!(&stderr, "");
+    assert_eq!(&stdout, &expected);
+    assert_eq!(exitcode, Some(0));
+}
+
+#[test]
+fn test_basic_bad_arguments() {
+    let (_dirs, mut cmd) = setup_e2e_local("test_basic_bad_arguments");
+    cmd.args(["--foo", "bar"]);
+
+    let expected = "\
+error: unexpected argument '--foo' found
+
+  tip: to pass '--foo' as a value, use '-- --foo'
+
+Usage: coliru [OPTIONS] <MANIFEST>
+
+For more information, try '--help'.
+";
+    let (stdout, stderr, exitcode) = run_command(&mut cmd);
+    assert_eq!(&stderr, expected);
+    assert_eq!(&stdout, "");
+    assert_eq!(exitcode, Some(2));
 }
 
 #[test]
@@ -43,8 +65,10 @@ fn test_basic_empty_manifest() {
     write_file(&dirs.local.join("manifest.yml"), "");
 
     let expected = "Error: missing field `steps`\n";
-    assert_eq!(&stderr_to_string(&mut cmd), expected);
-    assert_eq!(&stdout_to_string(&mut cmd), "");
+    let (stdout, stderr, exitcode) = run_command(&mut cmd);
+    assert_eq!(&stderr, expected);
+    assert_eq!(&stdout, "");
+    assert_eq!(exitcode, Some(2));
 }
 
 #[test]
@@ -54,8 +78,10 @@ fn test_basic_missing_manifest() {
     cmd.args(["missing.yml"]);
 
     let expected = "Error: No such file or directory (os error 2)\n";
-    assert_eq!(&stderr_to_string(&mut cmd), expected);
-    assert_eq!(&stdout_to_string(&mut cmd), "");
+    let (stdout, stderr, exitcode) = run_command(&mut cmd);
+    assert_eq!(&stderr, expected);
+    assert_eq!(&stdout, "");
+    assert_eq!(exitcode, Some(2));
 }
 
 #[test]
@@ -66,8 +92,10 @@ fn test_basic_missing_manifest() {
 
     let expected = "Error: The system cannot find the file specified. \
                     (os error 2)\n";
-    assert_eq!(&stderr_to_string(&mut cmd), expected);
-    assert_eq!(&stdout_to_string(&mut cmd), "");
+    let (stdout, stderr, exitcode) = run_command(&mut cmd);
+    assert_eq!(&stderr, expected);
+    assert_eq!(&stdout, "");
+    assert_eq!(exitcode, Some(2));
 }
 
 #[test]
@@ -83,8 +111,10 @@ fn test_basic_absolute_manifest() {
 [2/3] Link vimrc to ~/.vimrc (DRY RUN)
 [2/3] Run sh script.sh arg1 linux (DRY RUN)
 ";
-    assert_eq!(&stderr_to_string(&mut cmd), "");
-    assert_eq!(&stdout_to_string(&mut cmd), expected);
+    let (stdout, stderr, exitcode) = run_command(&mut cmd);
+    assert_eq!(&stderr, "");
+    assert_eq!(&stdout, expected);
+    assert_eq!(exitcode, Some(0));
 
     // Assert files are correctly copied/linked/run
     let bash_exists = dirs.home.join(".bashrc").exists();
@@ -112,8 +142,10 @@ fn test_basic_absolute_manifest() {
 [2/3] Link vimrc to .vimrc (DRY RUN)
 [2/3] Run sh script.sh arg1 linux (DRY RUN)
 ";
-    assert_eq!(&stderr_to_string(&mut cmd), "");
-    assert_eq!(&stdout_to_string(&mut cmd), expected);
+    let (stdout, stderr, exitcode) = run_command(&mut cmd);
+    assert_eq!(&stderr, "");
+    assert_eq!(&stdout, expected);
+    assert_eq!(exitcode, Some(0));
 
     // Assert files are correctly copied/linked/run
     let bash_exists = dirs.local.join(".bashrc").exists();

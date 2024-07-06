@@ -18,8 +18,10 @@ fn test_local_standard() {
 [2/3] Run sh script.sh arg1 linux
 script.sh called with arg1 linux
 ";
-    assert_eq!(&stderr_to_string(&mut cmd), "");
-    assert_eq!(&stdout_to_string(&mut cmd), expected);
+    let (stdout, stderr, exitcode) = run_command(&mut cmd);
+    assert_eq!(&stderr, "");
+    assert_eq!(&stdout, expected);
+    assert_eq!(exitcode, Some(0));
 
     // Assert files are correctly copied/linked/run
     write_file(&dirs.local.join("bashrc"), "bash #2\n");
@@ -49,8 +51,10 @@ fn test_local_standard() {
 [3/3] Run  script.bat arg1 windows
 script.bat called with arg1 windows\r
 ";
-    assert_eq!(&stderr_to_string(&mut cmd), "");
-    assert_eq!(&stdout_to_string(&mut cmd), expected);
+    let (stdout, stderr, exitcode) = run_command(&mut cmd);
+    assert_eq!(&stderr, "");
+    assert_eq!(&stdout, expected);
+    assert_eq!(exitcode, Some(0));
 
     // Assert files are correctly copied/linked/run
     write_file(&dirs.local.join("gitconfig"), "git #2\r\n");
@@ -79,8 +83,10 @@ fn test_local_run_alternate_tag_rules_1() {
 [2/3] Run sh script.sh arg1 linux ^windows
 script.sh called with arg1 linux ^windows
 ";
-    assert_eq!(&stderr_to_string(&mut cmd), "");
-    assert_eq!(&stdout_to_string(&mut cmd), expected);
+    let (stdout, stderr, exitcode) = run_command(&mut cmd);
+    assert_eq!(&stderr, "");
+    assert_eq!(&stdout, expected);
+    assert_eq!(exitcode, Some(0));
 
     // Assert files are correctly copied/linked/run
     write_file(&dirs.local.join("bashrc"), "bash #2\n");
@@ -110,8 +116,10 @@ fn test_local_run_alternate_tag_rules_2() {
 [2/3] Run sh script.sh arg1 macos
 script.sh called with arg1 macos
 ";
-    assert_eq!(&stderr_to_string(&mut cmd), "");
-    assert_eq!(&stdout_to_string(&mut cmd), expected);
+    let (stdout, stderr, exitcode) = run_command(&mut cmd);
+    assert_eq!(&stderr, "");
+    assert_eq!(&stdout, expected);
+    assert_eq!(exitcode, Some(0));
 
     // Assert files are correctly copied/linked/run
     write_file(&dirs.local.join("bashrc"), "bash #2\n");
@@ -141,8 +149,10 @@ fn test_local_dry_run() {
 [2/3] Link vimrc to ~/.vimrc (DRY RUN)
 [2/3] Run sh script.sh arg1 linux (DRY RUN)
 ";
-    assert_eq!(&stderr_to_string(&mut cmd), "");
-    assert_eq!(&stdout_to_string(&mut cmd), expected);
+    let (stdout, stderr, exitcode) = run_command(&mut cmd);
+    assert_eq!(&stderr, "");
+    assert_eq!(&stdout, expected);
+    assert_eq!(exitcode, Some(0));
 
     // Assert files are correctly copied/linked/run
     let bash_exists = dirs.home.join(".bashrc").exists();
@@ -168,8 +178,10 @@ fn test_local_dry_run() {
 [3/3] Link vimrc to _vimrc (DRY RUN)
 [3/3] Run  script.bat arg1 windows (DRY RUN)
 ";
-    assert_eq!(&stderr_to_string(&mut cmd), "");
-    assert_eq!(&stdout_to_string(&mut cmd), expected);
+    let (stdout, stderr, exitcode) = run_command(&mut cmd);
+    assert_eq!(&stderr, "");
+    assert_eq!(&stdout, expected);
+    assert_eq!(exitcode, Some(0));
 
     // Assert files are correctly copied/linked/run
     let bash_exists = dirs.local.join(".bashrc").exists();
@@ -197,8 +209,10 @@ fn test_local_copy() {
 [2/3] Run sh script.sh arg1 linux
 script.sh called with arg1 linux
 ";
-    assert_eq!(&stderr_to_string(&mut cmd), "");
-    assert_eq!(&stdout_to_string(&mut cmd), expected);
+    let (stdout, stderr, exitcode) = run_command(&mut cmd);
+    assert_eq!(&stderr, "");
+    assert_eq!(&stdout, expected);
+    assert_eq!(exitcode, Some(0));
 
     // Assert files are correctly copied/linked/run
     write_file(&dirs.local.join("bashrc"), "bash #2\n");
@@ -228,8 +242,10 @@ fn test_local_copy() {
 [3/3] Run  script.bat arg1 windows
 script.bat called with arg1 windows\r
 ";
-    assert_eq!(&stderr_to_string(&mut cmd), "");
-    assert_eq!(&stdout_to_string(&mut cmd), expected);
+    let (stdout, stderr, exitcode) = run_command(&mut cmd);
+    assert_eq!(&stderr, "");
+    assert_eq!(&stdout, expected);
+    assert_eq!(exitcode, Some(0));
 
     // Assert files are correctly copied/linked/run
     write_file(&dirs.local.join("gitconfig"), "git #2\r\n");
@@ -260,8 +276,10 @@ fn test_local_run_failure() {
 [2/3] Run sh script.sh arg1 linux
 ";
     let expected_stderr = "  Error: Process exited with exit status: 1\n";
-    assert_eq!(&stderr_to_string(&mut cmd), expected_stderr);
-    assert_eq!(&stdout_to_string(&mut cmd), expected_stdout);
+    let (stdout, stderr, exitcode) = run_command(&mut cmd);
+    assert_eq!(&stderr, expected_stderr);
+    assert_eq!(&stdout, expected_stdout);
+    assert_eq!(exitcode, Some(1));
 
     // Assert files are correctly copied/linked/run
     write_file(&dirs.local.join("bashrc"), "bash #2\n");
@@ -290,8 +308,10 @@ fn test_local_run_failure() {
 [3/3] Run  script.bat arg1 windows
 ";
     let expected_stderr = "  Error: Process exited with exit code: 1\n";
-    assert_eq!(&stderr_to_string(&mut cmd), expected_stderr);
-    assert_eq!(&stdout_to_string(&mut cmd), expected_stdout);
+    let (stdout, stderr, exitcode) = run_command(&mut cmd);
+    assert_eq!(&stderr, expected_stderr);
+    assert_eq!(&stdout, expected_stdout);
+    assert_eq!(exitcode, Some(1));
 
     // Assert files are correctly copied/linked/run
     write_file(&dirs.local.join("gitconfig"), "git #2\r\n");
@@ -321,8 +341,10 @@ fn test_local_missing_file() {
 script.sh called with arg1 linux
 ";
     let expected_stderr = "  Error: No such file or directory (os error 2)\n";
-    assert_eq!(&stderr_to_string(&mut cmd), expected_stderr);
-    assert_eq!(&stdout_to_string(&mut cmd), expected_stdout);
+    let (stdout, stderr, exitcode) = run_command(&mut cmd);
+    assert_eq!(&stderr, expected_stderr);
+    assert_eq!(&stdout, expected_stdout);
+    assert_eq!(exitcode, Some(1));
 
     // Assert files are correctly copied/linked/run
     write_file(&dirs.local.join("bashrc"), "bash #2\n");
@@ -350,8 +372,10 @@ script.bat called with arg1 windows\r
 ";
     let expected_stderr = "  Error: The system cannot find the file specified. \
                            (os error 2)\n";
-    assert_eq!(&stderr_to_string(&mut cmd), expected_stderr);
-    assert_eq!(&stdout_to_string(&mut cmd), expected_stdout);
+    let (stdout, stderr, exitcode) = run_command(&mut cmd);
+    assert_eq!(&stderr, expected_stderr);
+    assert_eq!(&stdout, expected_stdout);
+    assert_eq!(exitcode, Some(1));
 
     // Assert files are correctly copied/linked/run
     write_file(&dirs.local.join("gitconfig"), "git #2\r\n");

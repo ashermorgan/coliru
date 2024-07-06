@@ -1,6 +1,7 @@
 //! Manifest execution functions
 
 use std::env::set_current_dir;
+use std::fmt::Display;
 use std::path::Path;
 use super::manifest::{CopyLinkOptions, RunOptions, parse_manifest_file};
 use super::tags::tags_match;
@@ -25,51 +26,57 @@ macro_rules! check_dry_run {
     }
 }
 
+/// Handles minor errors that occur during command execution and returns a bool
+/// indicating whether an error occurred
+fn handle_error<T: Display>(result: Result<(), T>) -> bool {
+    if let Err(why) = result {
+        eprintln!("  Error: {}", why);
+        return true;
+    }
+    false
+}
+
 /// Executes the steps in a coliru manifest file according to a set of tag rules
+///
+/// Returns an Err if a critical err occurs and returns a bool indicating
+/// whether any minor errors occurred otherwise
 pub fn execute_manifest_file(path: &Path, tag_rules: Vec<String>, host: &str,
-                             dry_run: bool, copy: bool) {
+                             dry_run: bool, copy: bool) -> Result<bool, String> {
 
-    let _manifest = parse_manifest_file(path);
-    if let Err(why) = _manifest {
-        eprintln!("Error: {}", why);
-        return;
-    }
-    let manifest = _manifest.unwrap();
+    let manifest = parse_manifest_file(path).map_err(|why| why.to_string())?;
+    let temp_dir = tempdir().map_err(|why| why.to_string())?;
+    set_current_dir(manifest.base_dir).map_err(|why| why.to_string())?;
 
-    let _temp_dir = tempdir();
-    if let Err(why) = _temp_dir {
-        eprintln!("Error: {}", why);
-        return;
-    }
-    let temp_dir = _temp_dir.unwrap();
-
-    if let Err(why) = set_current_dir(manifest.base_dir) {
-        eprintln!("Error: {}", why);
-        return;
-    }
+    let mut errors = false;
 
     for (i, step) in manifest.steps.iter().enumerate() {
         if !tags_match(&tag_rules, &step.tags) { continue; }
 
         let step_str = format!("[{}/{}]", i+1, manifest.steps.len());
 
-        execute_copies(&step.copy, host, temp_dir.path(), dry_run, &step_str);
+        errors |= execute_copies(&step.copy, host, temp_dir.path(), dry_run,
+                                 &step_str);
 
         if !copy && host == "" {
-            execute_links(&step.link, dry_run, &step_str);
+            errors |= execute_links(&step.link, dry_run, &step_str);
         } else {
-            execute_copies(&step.link, host, temp_dir.path(), dry_run,
+            errors |= execute_copies(&step.link, host, temp_dir.path(), dry_run,
                            &step_str);
         }
 
-        execute_runs(&step.run, &tag_rules, host, temp_dir.path(), dry_run,
-                     &step_str);
+        errors |= execute_runs(&step.run, &tag_rules, host, temp_dir.path(),
+                               dry_run, &step_str);
     }
+
+    Ok(errors)
 }
 
-/// Executes a set of copy commands
+/// Executes a set of copy commands and returns a bool indicating whether any
+/// error occurred
 fn execute_copies(copies: &[CopyLinkOptions], host: &str, staging_dir: &Path,
-                  dry_run: bool, step_str: &str) {
+                  dry_run: bool, step_str: &str) -> bool {
+
+    let mut errors = false;
 
     for copy in copies {
         // Resolve relative dst paths if installing over SSH
@@ -88,39 +95,43 @@ fn execute_copies(copies: &[CopyLinkOptions], host: &str, staging_dir: &Path,
         check_dry_run!(dry_run);
 
         if host == "" {
-            if let Err(why) = copy_file(&copy.src, &_dst) {
-                eprintln!("  Error: {}", why);
-            }
+            errors |= handle_error(copy_file(&copy.src, &_dst));
         } else {
-            if let Err(why) = stage_file(&copy.src, &_dst, staging_dir) {
-                eprintln!("  Error: {}", why);
-            }
+            errors |= handle_error(stage_file(&copy.src, &_dst, staging_dir));
         }
     }
 
     if !dry_run {
-        if let Err(why) = send_staged_files(staging_dir, host) {
-            eprintln!("  Error: {}", why);
-        }
+        errors |= handle_error(send_staged_files(staging_dir, host));
     }
+
+    errors
 }
 
-/// Executes a set of link commands
-fn execute_links(links: &[CopyLinkOptions], dry_run: bool, step_str: &str) {
+/// Executes a set of link commands and returns a bool indicating whether any
+/// error occurred
+fn execute_links(links: &[CopyLinkOptions], dry_run: bool, step_str: &str)
+    -> bool {
+
+    let mut errors = false;
+
     for link in links {
         print!("{} Link {} to {}", step_str, link.src, link.dst);
 
         check_dry_run!(dry_run);
 
-        if let Err(why) = link_file(&link.src, &link.dst) {
-            eprintln!("  Error: {}", why);
-        }
+        errors |= handle_error(link_file(&link.src, &link.dst));
     }
+
+    errors
 }
 
-/// Executes a set of run commands
+/// Executes a set of run commands and returns a bool indicating whether any
+/// error occurred
 fn execute_runs(runs: &[RunOptions], tag_rules: &[String], host: &str,
-                staging_dir: &Path, dry_run: bool, step_str: &str) {
+                staging_dir: &Path, dry_run: bool, step_str: &str) -> bool {
+
+    let mut errors = false;
 
     if host != "" {
         // Copy scripts to remote machine
@@ -144,14 +155,12 @@ fn execute_runs(runs: &[RunOptions], tag_rules: &[String], host: &str,
         check_dry_run!(dry_run);
 
         if host == "" {
-            if let Err(why) = run_command(&cmd) {
-                eprintln!("  Error: {}", why);
-            }
+            errors |= handle_error(run_command(&cmd));
         } else {
             let ssh_cmd = format!("cd {} && {}", SSH_INSTALL_DIR, &cmd);
-            if let Err(why) = send_command(&ssh_cmd, host) {
-                eprintln!("  Error: {}", why);
-            }
+            errors |= handle_error(send_command(&ssh_cmd, host));
         }
     }
+
+    errors
 }

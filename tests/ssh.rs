@@ -19,8 +19,10 @@ fn test_ssh_standard() {
 [2/3] Run sh test_ssh_standard/script.sh arg1 linux on {SSH_HOST}
 script.sh called with arg1 linux
 ");
-    assert_eq!(&stderr_to_string(&mut cmd), "");
-    assert_eq!(stdout_to_string(&mut cmd), expected);
+    let (stdout, stderr, exitcode) = run_command(&mut cmd);
+    assert_eq!(&stderr, "");
+    assert_eq!(&stdout, &expected);
+    assert_eq!(exitcode, Some(0));
 
     // Assert files are correctly copied/run
     let bash_contents = read_file(&dirs.ssh.join(".bashrc"));
@@ -48,8 +50,10 @@ fn test_ssh_run_alternate_tag_rules_1() {
 [2/3] Run sh test_ssh_run_alternate_tag_rules_1/script.sh arg1 linux ^windows on {SSH_HOST}
 script.sh called with arg1 linux ^windows
 ");
-    assert_eq!(&stderr_to_string(&mut cmd), "");
-    assert_eq!(stdout_to_string(&mut cmd), expected);
+    let (stdout, stderr, exitcode) = run_command(&mut cmd);
+    assert_eq!(&stderr, "");
+    assert_eq!(&stdout, &expected);
+    assert_eq!(exitcode, Some(0));
 
     // Assert files are correctly copied/run
     let bash_contents = read_file(&dirs.ssh.join(".bashrc"));
@@ -78,8 +82,10 @@ fn test_ssh_run_alternate_tag_rules_2() {
 [2/3] Run sh test_ssh_run_alternate_tag_rules_2/script.sh arg1 macos on {SSH_HOST}
 script.sh called with arg1 macos
 ");
-    assert_eq!(&stderr_to_string(&mut cmd), "");
-    assert_eq!(stdout_to_string(&mut cmd), expected);
+    let (stdout, stderr, exitcode) = run_command(&mut cmd);
+    assert_eq!(&stderr, "");
+    assert_eq!(&stdout, &expected);
+    assert_eq!(exitcode, Some(0));
 
     // Assert files are correctly copied/run
     let bash_contents = read_file(&dirs.ssh.join(".bashrc"));
@@ -106,8 +112,10 @@ fn test_ssh_dry_run() {
 [2/3] Copy test_ssh_dry_run/script.sh to {SSH_HOST}:~/.coliru/test_ssh_dry_run/script.sh (DRY RUN)
 [2/3] Run sh test_ssh_dry_run/script.sh arg1 linux on {SSH_HOST} (DRY RUN)
 ");
-    assert_eq!(&stderr_to_string(&mut cmd), "");
-    assert_eq!(stdout_to_string(&mut cmd), expected);
+    let (stdout, stderr, exitcode) = run_command(&mut cmd);
+    assert_eq!(&stderr, "");
+    assert_eq!(&stdout, &expected);
+    assert_eq!(exitcode, Some(0));
 
     // Assert files are correctly copied/run
     let bash_exists = dirs.ssh.join(".bashrc").exists();
@@ -136,8 +144,10 @@ fn test_ssh_copy() {
 [2/3] Run sh test_ssh_copy/script.sh arg1 linux on {SSH_HOST}
 script.sh called with arg1 linux
 ");
-    assert_eq!(&stderr_to_string(&mut cmd), "");
-    assert_eq!(stdout_to_string(&mut cmd), expected);
+    let (stdout, stderr, exitcode) = run_command(&mut cmd);
+    assert_eq!(&stderr, "");
+    assert_eq!(&stdout, &expected);
+    assert_eq!(exitcode, Some(0));
 
     // Assert files are correctly copied/run
     let bash_contents = read_file(&dirs.ssh.join(".bashrc"));
@@ -167,8 +177,10 @@ fn test_ssh_run_failure() {
 [2/3] Run sh test_ssh_run_failure/script.sh arg1 linux on {SSH_HOST}
 ");
     let expected_stderr = "  Error: SSH exited with exit status: 1\n";
-    assert_eq!(&stderr_to_string(&mut cmd), expected_stderr);
-    assert_eq!(stdout_to_string(&mut cmd), expected_stdout);
+    let (stdout, stderr, exitcode) = run_command(&mut cmd);
+    assert_eq!(&stderr, expected_stderr);
+    assert_eq!(&stdout, &expected_stdout);
+    assert_eq!(exitcode, Some(1));
 
     // Assert files are correctly copied/run
     let bash_contents = read_file(&dirs.ssh.join(".bashrc"));
@@ -197,8 +209,10 @@ fn test_ssh_missing_file() {
 script.sh called with arg1 linux
 ");
     let expected_stderr = "  Error: No such file or directory (os error 2)\n";
-    assert_eq!(&stderr_to_string(&mut cmd), expected_stderr);
-    assert_eq!(stdout_to_string(&mut cmd), expected_stdout);
+    let (stdout, stderr, exitcode) = run_command(&mut cmd);
+    assert_eq!(&stderr, expected_stderr);
+    assert_eq!(&stdout, &expected_stdout);
+    assert_eq!(exitcode, Some(1));
 
     // Assert files are correctly copied/run
     let bash_contents = read_file(&dirs.ssh.join(".bashrc"));

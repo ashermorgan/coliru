@@ -196,12 +196,12 @@ pub fn read_file(path: &Path) -> String {
     fs::read_to_string(path).unwrap()
 }
 
-/// Returns the stdout of a command as a String
-pub fn stdout_to_string(cmd: &mut Command) -> String {
-    String::from_utf8_lossy(&cmd.output().unwrap().stdout).into_owned()
-}
-
-/// Returns the stderr of a command as a String
-pub fn stderr_to_string(cmd: &mut Command) -> String {
-    String::from_utf8_lossy(&cmd.output().unwrap().stderr).into_owned()
+/// Run a command and return its output (stdout and stderr) and exit status
+pub fn run_command(cmd: &mut Command) -> (String, String, Option<i32>) {
+    let output = cmd.output().unwrap();
+    (
+        String::from_utf8_lossy(&output.stdout).into_owned(),
+        String::from_utf8_lossy(&output.stderr).into_owned(),
+        output.status.code(),
+    )
 }
