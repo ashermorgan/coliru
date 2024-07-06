@@ -1,5 +1,6 @@
 //! Coliru manifest parsing
 
+use anyhow::Result;
 use serde::Deserialize;
 use serde_yaml;
 use std::fs::read_to_string;
@@ -73,10 +74,9 @@ pub struct Manifest {
 /// ```
 /// let manifest = parse_manifest_file(Path::new("manifest.yml"))?;
 /// ```
-pub fn parse_manifest_file(path: &Path) -> Result<Manifest, String> {
-    let raw_str = read_to_string(path).map_err(|why| why.to_string())?;
-    let raw_manifest = serde_yaml::from_str::<RawManifest>(&raw_str)
-        .map_err(|why| why.to_string())?;
+pub fn parse_manifest_file(path: &Path) -> Result<Manifest> {
+    let raw_str = read_to_string(path)?;
+    let raw_manifest = serde_yaml::from_str::<RawManifest>(&raw_str)?;
     let base_dir = match path.parent() {
         None => &Path::new("."),
         Some(p) => if p == Path::new("") { &Path::new(".") } else { p },
@@ -98,7 +98,8 @@ mod tests {
         let manifest_path = Path::new("examples/test/missing.yml");
         let expected = "No such file or directory (os error 2)";
         let actual = parse_manifest_file(manifest_path);
-        assert_eq!(actual, Err(String::from(expected)));
+        assert_eq!(actual.is_ok(), false);
+        assert_eq!(actual.unwrap_err().to_string(), expected);
     }
 
     #[test]
@@ -107,7 +108,8 @@ mod tests {
         let manifest_path = Path::new("examples/test/missing.yml");
         let exp = "The system cannot find the file specified. (os error 2)";
         let actual = parse_manifest_file(manifest_path);
-        assert_eq!(actual, Err(String::from(exp)));
+        assert_eq!(actual.is_ok(), false);
+        assert_eq!(actual.unwrap_err().to_string(), exp);
     }
 
     #[test]
@@ -115,7 +117,8 @@ mod tests {
         let manifest_path = Path::new("examples/test/invalid.yml");
         let exp = "steps[0].copy[0]: missing field `src` at line 5 column 7";
         let actual = parse_manifest_file(manifest_path);
-        assert_eq!(actual, Err(String::from(exp)));
+        assert_eq!(actual.is_ok(), false);
+        assert_eq!(actual.unwrap_err().to_string(), exp);
     }
 
     #[test]
@@ -180,6 +183,7 @@ mod tests {
             base_dir: PathBuf::from("examples/test"),
         };
         let actual = parse_manifest_file(manifest_path);
-        assert_eq!(actual, Ok(expected));
+        assert_eq!(actual.is_ok(), true);
+        assert_eq!(actual.unwrap(), expected);
     }
 }

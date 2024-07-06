@@ -64,7 +64,7 @@ fn test_basic_empty_manifest() {
     cmd.args(["manifest.yml"]);
     write_file(&dirs.local.join("manifest.yml"), "");
 
-    let expected = "Error: missing field `steps`\n";
+    let expected = "Error: Failed to parse manifest: missing field `steps`\n";
     let (stdout, stderr, exitcode) = run_command(&mut cmd);
     assert_eq!(&stderr, expected);
     assert_eq!(&stdout, "");
@@ -77,7 +77,8 @@ fn test_basic_missing_manifest() {
     let (_dirs, mut cmd) = setup_e2e_local("test_basic_missing_manifest");
     cmd.args(["missing.yml"]);
 
-    let expected = "Error: No such file or directory (os error 2)\n";
+    let expected = "Error: Failed to parse manifest: No such file or directory \
+                    (os error 2)\n";
     let (stdout, stderr, exitcode) = run_command(&mut cmd);
     assert_eq!(&stderr, expected);
     assert_eq!(&stdout, "");
@@ -90,8 +91,8 @@ fn test_basic_missing_manifest() {
     let (_dirs, mut cmd) = setup_e2e_local("test_basic_missing_manifest");
     cmd.args(["missing.yml"]);
 
-    let expected = "Error: The system cannot find the file specified. \
-                    (os error 2)\n";
+    let expected = "Error: Failed to parse manifest: The system cannot find \
+                    the file specified. (os error 2)\n";
     let (stdout, stderr, exitcode) = run_command(&mut cmd);
     assert_eq!(&stderr, expected);
     assert_eq!(&stdout, "");

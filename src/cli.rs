@@ -49,7 +49,7 @@ pub fn run() {
     match execute_manifest_file(&manifest_path, args.tag_rules, &args.host,
                                 args.dry_run, args.copy) {
         Err(why) => {
-            eprintln!("Error: {}", why);
+            eprintln!("Error: {:#}", why);
             std::process::exit(2);
         },
         Ok(minor_errors) => {

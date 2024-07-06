@@ -6,8 +6,8 @@
 //! run_command("echo 'Hello world'");
 //! ```
 
+use anyhow::{bail, Context, Result};
 use shellexpand::tilde;
-use std::io;
 use std::fs;
 #[cfg(target_family = "unix")]
 use std::os::unix::fs::symlink;
@@ -22,8 +22,15 @@ use std::process::Command;
 /// ```
 /// copy_file("foo", "~/foo");
 /// ```
-pub fn copy_file(src: &str, dst: &str) -> io::Result<()> {
-    if absolute(src)? == absolute(dst)? { return Ok(()); }
+pub fn copy_file(src: &str, dst: &str) -> Result<()> {
+    let src_abs = absolute(src).with_context(|| {
+        format!("Failed to make {} absolute", src)
+    })?;
+    let dst_abs = absolute(dst).with_context(|| {
+        format!("Failed to make {} absolute", dst)
+    })?;
+    if src_abs == dst_abs { return Ok(()); }
+
     let _dst = prepare_path(dst)?;
     fs::copy(src, _dst)?;
     Ok(())
@@ -38,15 +45,29 @@ pub fn copy_file(src: &str, dst: &str) -> io::Result<()> {
 /// link_file("bar", "~/bar");
 /// ```
 #[cfg(target_family = "unix")]
-pub fn link_file(src: &str, dst: &str) -> io::Result<()> {
-    if absolute(src)? == absolute(dst)? { return Ok(()); }
+pub fn link_file(src: &str, dst: &str) -> Result<()> {
+    let src_abs = absolute(src).with_context(|| {
+        format!("Failed to make {} absolute", src)
+    })?;
+    let dst_abs = absolute(dst).with_context(|| {
+        format!("Failed to make {} absolute", dst)
+    })?;
+    if src_abs == dst_abs { return Ok(()); }
+
     let _dst = prepare_path(dst)?;
-    symlink(fs::canonicalize(src)?, _dst)?;
+    symlink(src_abs, _dst)?;
     Ok(())
 }
 #[cfg(not(target_family = "unix"))]
-pub fn link_file(src: &str, dst: &str) -> io::Result<()> {
-    if absolute(src)? == absolute(dst)? { return Ok(()); }
+pub fn link_file(src: &str, dst: &str) -> Result<()> {
+    let src_abs = absolute(src).with_context(|| {
+        format!("Failed to make {} absolute", src)
+    })?;
+    let dst_abs = absolute(dst).with_context(|| {
+        format!("Failed to make {} absolute", dst)
+    })?;
+    if src_abs == dst_abs { return Ok(()); }
+
     let _dst = prepare_path(dst)?;
     fs::hard_link(src, _dst)?;
     Ok(())
@@ -58,14 +79,18 @@ pub fn link_file(src: &str, dst: &str) -> io::Result<()> {
 /// ```
 /// prepare_path("~/foo");
 /// ```
-fn prepare_path(path: &str) -> io::Result<PathBuf> {
+fn prepare_path(path: &str) -> Result<PathBuf> {
     let _dst: PathBuf = (&tilde(path).to_mut()).into();
     if let Some(_path) = _dst.parent() {
-        fs::create_dir_all(_path)?;
+        fs::create_dir_all(_path).with_context(|| {
+            format!("Failed to create parent directories of {}", path)
+        })?;
     }
     if fs::symlink_metadata(&_dst).is_ok() {
         // Check for existing files, including broken symlinks
-        fs::remove_file(&_dst)?;
+        fs::remove_file(&_dst).with_context(|| {
+            format!("Failed to remove existing file at {}", path)
+        })?;
     }
     Ok(_dst)
 }
@@ -75,25 +100,24 @@ fn prepare_path(path: &str) -> io::Result<PathBuf> {
 /// ```
 /// run_command("echo 'Hello world'");
 /// ```
-pub fn run_command(command: &str) -> Result<(), String>
+pub fn run_command(command: &str) -> Result<()>
 {
-    let status;
+    let mut cmd;
     if cfg!(target_family = "unix") {
-        status = Command::new("sh")
-            .args(["-c", command])
-            .status()
-            .map_err(|why| why.to_string())?;
+        cmd = Command::new("sh");
+        cmd.args(["-c", command]);
     } else {
-        status = Command::new("cmd.exe")
-            .args(["/C", command])
-            .status()
-            .map_err(|why| why.to_string())?;
+        cmd = Command::new("cmd.exe");
+        cmd.args(["/C", command]);
     }
-    if status.success() {
-        Ok(())
-    } else {
-        Err(format!("Process exited with {status}"))
+
+    let status = cmd.status().with_context(|| {
+        format!("Failed to execute {:?}", cmd)
+    })?;
+    if !status.success() {
+        bail!("Process terminated unsuccessfully: {}", status);
     }
+    Ok(())
 }
 
 #[cfg(test)]
@@ -329,7 +353,8 @@ mod tests {
         let result = run_command(&format!("sh {}", src.to_str().unwrap()));
 
         assert_eq!(result.is_ok(), false);
-        assert_eq!(result.unwrap_err(), "Process exited with exit status: 2");
+        assert_eq!(result.unwrap_err().to_string(),
+            "Process terminated unsuccessfully: exit status: 2");
     }
 
     #[test]
@@ -343,7 +368,8 @@ mod tests {
         let result = run_command(src.to_str().unwrap());
 
         assert_eq!(result.is_ok(), false);
-        assert_eq!(result.unwrap_err(), "Process exited with exit code: 1");
+        assert_eq!(result.unwrap_err().to_string(),
+            "Process terminated unsuccessfully: exit code: 1");
     }
 
     #[test]

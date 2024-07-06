@@ -1,3 +1,5 @@
+#![allow(unused_imports)]
+
 //! End to end tests that test installation behavior on a remote machine via SSH
 
 mod test_utils;
@@ -176,7 +178,7 @@ fn test_ssh_run_failure() {
 [2/3] Copy test_ssh_run_failure/script.sh to {SSH_HOST}:~/.coliru/test_ssh_run_failure/script.sh
 [2/3] Run sh test_ssh_run_failure/script.sh arg1 linux on {SSH_HOST}
 ");
-    let expected_stderr = "  Error: SSH exited with exit status: 1\n";
+    let expected_stderr = "  Error: SSH terminated unsuccessfully: exit status: 1\n";
     let (stdout, stderr, exitcode) = run_command(&mut cmd);
     assert_eq!(&stderr, expected_stderr);
     assert_eq!(&stdout, &expected_stdout);
@@ -208,7 +210,8 @@ fn test_ssh_missing_file() {
 [2/3] Run sh test_ssh_missing_file/script.sh arg1 linux on {SSH_HOST}
 script.sh called with arg1 linux
 ");
-    let expected_stderr = "  Error: No such file or directory (os error 2)\n";
+    let expected_stderr = "  Error: Failed to copy vimrc to staging directory: \
+                           No such file or directory (os error 2)\n";
     let (stdout, stderr, exitcode) = run_command(&mut cmd);
     assert_eq!(&stderr, expected_stderr);
     assert_eq!(&stdout, &expected_stdout);

@@ -1,7 +1,7 @@
 //! Manifest execution functions
 
+use anyhow::{Context, Result};
 use std::env::set_current_dir;
-use std::fmt::Display;
 use std::path::Path;
 use super::manifest::{CopyLinkOptions, RunOptions, parse_manifest_file};
 use super::tags::tags_match;
@@ -28,9 +28,9 @@ macro_rules! check_dry_run {
 
 /// Handles minor errors that occur during command execution and returns a bool
 /// indicating whether an error occurred
-fn handle_error<T: Display>(result: Result<(), T>) -> bool {
+fn handle_error(result: Result<()>) -> bool {
     if let Err(why) = result {
-        eprintln!("  Error: {}", why);
+        eprintln!("  Error: {:#}", why);
         return true;
     }
     false
@@ -41,11 +41,13 @@ fn handle_error<T: Display>(result: Result<(), T>) -> bool {
 /// Returns an Err if a critical err occurs and returns a bool indicating
 /// whether any minor errors occurred otherwise
 pub fn execute_manifest_file(path: &Path, tag_rules: Vec<String>, host: &str,
-                             dry_run: bool, copy: bool) -> Result<bool, String> {
+                             dry_run: bool, copy: bool) -> Result<bool> {
 
-    let manifest = parse_manifest_file(path).map_err(|why| why.to_string())?;
-    let temp_dir = tempdir().map_err(|why| why.to_string())?;
-    set_current_dir(manifest.base_dir).map_err(|why| why.to_string())?;
+    let manifest = parse_manifest_file(path)
+        .context("Failed to parse manifest")?;
+    let temp_dir = tempdir().context("Failed to create temporary directory")?;
+    set_current_dir(manifest.base_dir)
+        .context("Failed to set working directory")?;
 
     let mut errors = false;
 
@@ -97,12 +99,16 @@ fn execute_copies(copies: &[CopyLinkOptions], host: &str, staging_dir: &Path,
         if host == "" {
             errors |= handle_error(copy_file(&copy.src, &_dst));
         } else {
-            errors |= handle_error(stage_file(&copy.src, &_dst, staging_dir));
+            errors |= handle_error(stage_file(&copy.src, &_dst, staging_dir)
+               .with_context(|| {
+                   format!("Failed to copy {} to staging directory", &copy.src)
+               }));
         }
     }
 
     if !dry_run {
-        errors |= handle_error(send_staged_files(staging_dir, host));
+        errors |= handle_error(send_staged_files(staging_dir, host)
+            .context("Failed to transfer staged files"));
     }
 
     errors
@@ -139,7 +145,8 @@ fn execute_runs(runs: &[RunOptions], tag_rules: &[String], host: &str,
             CopyLinkOptions { src: x.src.clone(), dst: x.src.clone() }
         }).collect();
 
-        execute_copies(&run_copies, host, staging_dir, dry_run, step_str);
+        errors |= execute_copies(&run_copies, host, staging_dir, dry_run,
+                                 step_str);
     }
 
     for run in runs {

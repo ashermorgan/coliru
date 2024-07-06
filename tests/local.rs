@@ -275,7 +275,8 @@ fn test_local_run_failure() {
 [2/3] Link vimrc to ~/.vimrc
 [2/3] Run sh script.sh arg1 linux
 ";
-    let expected_stderr = "  Error: Process exited with exit status: 1\n";
+    let expected_stderr = "  Error: Process terminated unsuccessfully: \
+                           exit status: 1\n";
     let (stdout, stderr, exitcode) = run_command(&mut cmd);
     assert_eq!(&stderr, expected_stderr);
     assert_eq!(&stdout, expected_stdout);
@@ -307,7 +308,8 @@ fn test_local_run_failure() {
 [3/3] Link vimrc to _vimrc
 [3/3] Run  script.bat arg1 windows
 ";
-    let expected_stderr = "  Error: Process exited with exit code: 1\n";
+    let expected_stderr = "  Error: Process terminated unsuccessfully: \
+                           exit code: 1\n";
     let (stdout, stderr, exitcode) = run_command(&mut cmd);
     assert_eq!(&stderr, expected_stderr);
     assert_eq!(&stdout, expected_stdout);
@@ -331,7 +333,7 @@ fn test_local_run_failure() {
 fn test_local_missing_file() {
     let (dirs, mut cmd) = setup_e2e_local("test_local_missing_file");
     cmd.args(["manifest.yml", "-t", "linux"]);
-    remove_file(&dirs.local.join("vimrc")).unwrap();
+    remove_file(&dirs.local.join("gitconfig")).unwrap();
 
     let expected_stdout = "\
 [1/3] Copy gitconfig to ~/.gitconfig
@@ -348,12 +350,14 @@ script.sh called with arg1 linux
 
     // Assert files are correctly copied/linked/run
     write_file(&dirs.local.join("bashrc"), "bash #2\n");
-    write_file(&dirs.local.join("gitconfig"), "git #2\n");
+    write_file(&dirs.local.join("vimrc"), "vim #2\n");
     let bash_contents = read_file(&dirs.home.join(".bashrc"));
-    let git_contents = read_file(&dirs.home.join(".gitconfig"));
+    let vim1_contents = read_file(&dirs.home.join(".vimrc"));
+    let vim2_exists = dirs.home.join("_vimrc").exists();
     let log_contents = read_file(&dirs.local.join("log.txt"));
     assert_eq!(bash_contents, "bash #2\n");
-    assert_eq!(git_contents, "git #1\n");
+    assert_eq!(vim1_contents, "vim #2\n");
+    assert_eq!(vim2_exists, false);
     assert_eq!(log_contents, "script.sh called with arg1 linux\n");
 }
 
