@@ -43,17 +43,17 @@ fn test_basic_bad_arguments() {
     let (_dirs, mut cmd) = setup_e2e_local("test_basic_bad_arguments");
     cmd.args(["--foo", "bar"]);
 
-    let expected = "\
+    let expected = format!("\
 error: unexpected argument '--foo' found
 
   tip: to pass '--foo' as a value, use '-- --foo'
 
-Usage: coliru [OPTIONS] <MANIFEST>
+Usage: coliru{EXE_SUFFIX} [OPTIONS] <MANIFEST>
 
 For more information, try '--help'.
-";
+");
     let (stdout, stderr, exitcode) = run_command(&mut cmd);
-    assert_eq!(&stderr, expected);
+    assert_eq!(&stderr, &expected);
     assert_eq!(&stdout, "");
     assert_eq!(exitcode, Some(2));
 }
