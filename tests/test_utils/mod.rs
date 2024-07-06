@@ -15,7 +15,9 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 /// The SSH test server
-pub const SSH_HOST: &str = "test@localhost"; // TODO: add explicit port
+// StrictHostKeyChecking option and correct port are set automatically in
+// src/ssh.rs when COLIRU_TEST environment variable is set.
+pub const SSH_HOST: &str = "test@localhost";
 
 /// A set of temporary directories that are automatically deleted when the value
 /// is dropped
@@ -86,6 +88,7 @@ pub fn setup_integration(name: &str) -> TempDirs {
     if cfg!(target_family = "unix") {
         env::set_var("HOME", dirs.home.parent().unwrap());
     }
+    env::set_var("COLIRU_TEST", "1");
     dirs
 }
 
@@ -108,6 +111,7 @@ fn setup_e2e(name: &str) -> (TempDirs, Command) {
     if cfg!(target_family = "unix") {
         cmd.env("HOME", &dirs.home);
     }
+    cmd.env("COLIRU_TEST", "1");
 
     (dirs, cmd)
 }

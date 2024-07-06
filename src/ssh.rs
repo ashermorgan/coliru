@@ -12,6 +12,7 @@
 //! ```
 
 use anyhow::{bail, anyhow, Context, Result};
+use std::env;
 use shellexpand::tilde_with_context;
 use std::fs::{read_dir, remove_dir_all};
 use std::path::{MAIN_SEPARATOR_STR, Path, PathBuf};
@@ -140,8 +141,8 @@ fn send_dir(src: &str, dst: &str, host: &str) -> Result<()> {
         })?.path();
 
         let mut cmd = Command::new("scp");
-        if host == "test@localhost" {
-            // SSH options and port for test server hard coded for now
+
+        if env::var("COLIRU_TEST").is_ok() {
             cmd.args(["-o", "StrictHostKeyChecking=no", "-P", "2222"]);
         }
         cmd.args(["-r", &_src.to_string_lossy(), &format!("{host}:{dst}")]);
@@ -165,8 +166,7 @@ fn send_dir(src: &str, dst: &str, host: &str) -> Result<()> {
 /// ```
 pub fn send_command(command: &str, host: &str) -> Result<()> {
     let mut cmd = Command::new("ssh");
-    if host == "test@localhost" {
-        // SSH options and port for test server hard coded for now
+    if env::var("COLIRU_TEST").is_ok() {
         cmd.args(["-o", "StrictHostKeyChecking=no", "-p", "2222"]);
     }
     cmd.args([host, command]);
