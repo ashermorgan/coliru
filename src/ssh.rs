@@ -17,28 +17,44 @@ use std::path::{MAIN_SEPARATOR_STR, Path, PathBuf};
 use std::process::Command;
 use super::local::copy_file;
 
-/// Copies a file to an SCP staging directory
+/// Makes a relative path absolute according to a certain base directory
 ///
-/// Tildes will be expanded to the remote user's home directory. Relative paths
-/// are interpreted relative to `~/.coliru`.
+/// Paths begining with tildes are interpreted as absolute paths.
 ///
 /// ```
-/// // Prepare to transfer foo to ~/foo, bar to /bar, and baz to ~/.coliru/baz
+/// assert_eq!(resolve_path("dir1/foo", "~/dir2"), "~/dir2/dir1/foo");
+/// assert_eq!(resolve_path("/dir1/foo", "~/dir2"), "/dir1/foo");
+/// assert_eq!(resolve_path("~/dir1/foo", "~/dir2"), "~/dir1/foo");
+/// ```
+pub fn resolve_path(src: &str, dir: &str) -> String {
+    if !src.starts_with("~") && Path::new(src).is_relative() {
+        return format!("{dir}/{src}")
+    }
+    src.to_owned()
+}
+
+/// Copies a file to an SCP staging directory
+///
+/// Tildes are expanded and relative paths are interpreted relative to the
+/// remote user's home directory.
+///
+/// ```
+/// // Prepare to transfer foo to ~/foo, bar to /bar, and baz to ~/baz
 /// let staging_dir = Path::new("/tmp/staging");
 /// stage_file("foo", "~/foo", staging_dir);
 /// stage_file("bar", "/bar", staging_dir);
 /// stage_file("baz", "baz", staging_dir);
 /// ```
+pub fn stage_file(src: &str, dst: &str, staging_dir: &Path) -> Result<(),
+    String> {
 
-pub fn stage_file(src: &str, dst: &str, staging_dir: &Path) -> Result<(), String> {
     // Staging directories are used to copy multiple files at once while
     // automatically creating missing directories on the remote machine. The
     // example code above produces the following staging directory layout:
     //
     // /tmp/staging/
     // ├── home/
-    // │   ├── .coliru
-    // │   │   └── baz
+    // │   ├── baz
     // │   └── foo
     // └── root/
     //     └── bar
@@ -54,7 +70,7 @@ pub fn stage_file(src: &str, dst: &str, staging_dir: &Path) -> Result<(), String
                             .into();
 
     // Resolve relative paths to home staging directory:
-    _dst = home_dir.join(".coliru").join(_dst);
+    _dst = home_dir.join(_dst);
 
     // Resolve other absolute paths to root staging directory:
     if !_dst.starts_with(home_dir) {
@@ -158,6 +174,36 @@ mod tests {
     use std::fs;
 
     #[test]
+    fn test_resolve_path_relative() {
+        let result = resolve_path("dir1/foo", "~/dir2");
+
+        assert_eq!(result, "~/dir2/dir1/foo");
+    }
+
+    #[test]
+    fn test_resolve_path_tilde() {
+        let result = resolve_path("~/dir1/foo", "~/dir2");
+
+        assert_eq!(result, "~/dir1/foo");
+    }
+
+    #[test]
+    #[cfg(target_family = "unix")]
+    fn test_resolve_path_absolute() {
+        let result = resolve_path("/dir1/foo", "~/dir2");
+
+        assert_eq!(result, "/dir1/foo");
+    }
+
+    #[test]
+    #[cfg(target_family = "windows")]
+    fn test_resolve_path_absolute() {
+        let result = resolve_path("C:\\dir1\\foo", "~/dir2");
+
+        assert_eq!(result, "C:\\dir1\\foo");
+    }
+
+    #[test]
     fn test_stage_file_tilde() {
         let tmp = setup_integration("test_stage_file_tilde");
 
@@ -180,7 +226,7 @@ mod tests {
 
         let src = tmp.local.join("foo");
         let dst = "dir/bar";
-        let dst_real = tmp.local.join("home").join(".coliru").join("dir")
+        let dst_real = tmp.local.join("home").join("dir")
             .join("bar");
         let staging  = &tmp.local;
         write_file(&src, "contents of foo");

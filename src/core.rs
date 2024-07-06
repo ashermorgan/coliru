@@ -5,10 +5,27 @@ use std::path::Path;
 use super::manifest::{CopyLinkOptions, RunOptions, parse_manifest_file};
 use super::tags::tags_match;
 use super::local::{copy_file, link_file, run_command};
-use super::ssh::{send_command, send_staged_files, stage_file};
+use super::ssh::{resolve_path, send_command, send_staged_files, stage_file};
 use tempfile::tempdir;
 
-/// Execute the steps in a coliru manifest file according to a set of tag rules
+/// The base directory for SSH installs, relative to the home directory
+const SSH_INSTALL_DIR: &str = ".coliru";
+
+/// Performs a dry-run check inside of a loop
+///
+/// Will print `(DRY RUN)` and then continue to next loop iteration if `dry_run`
+/// evaluates to `true`.
+macro_rules! check_dry_run {
+    ($dry_run:expr) => {
+        if $dry_run {
+            println!(" (DRY RUN)");
+            continue;
+        }
+        println!("");
+    }
+}
+
+/// Executes the steps in a coliru manifest file according to a set of tag rules
 pub fn execute_manifest_file(path: &Path, tag_rules: Vec<String>, host: &str,
                              dry_run: bool, copy: bool) {
 
@@ -50,29 +67,32 @@ pub fn execute_manifest_file(path: &Path, tag_rules: Vec<String>, host: &str,
     }
 }
 
-/// Execute a set of copy commands
+/// Executes a set of copy commands
 fn execute_copies(copies: &[CopyLinkOptions], host: &str, staging_dir: &Path,
                   dry_run: bool, step_str: &str) {
 
     for copy in copies {
-        if host == "" {
-            print!("{} Copy {} to {}", step_str, copy.src, copy.dst);
+        // Resolve relative dst paths if installing over SSH
+        let _dst = if host != "" {
+            resolve_path(&copy.dst, &format!("~/{}", SSH_INSTALL_DIR))
         } else {
-            print!("{} Copy {} to {}:{}", step_str, copy.src, host, copy.dst);
-        }
+            copy.dst.clone()
+        };
 
-        if dry_run {
-            println!(" (DRY RUN)");
-            continue;
+        print!("{} Copy {} to ", step_str, copy.src);
+        if host != "" {
+            print!("{}:", host);
         }
-        println!("");
+        print!("{}", _dst);
+
+        check_dry_run!(dry_run);
 
         if host == "" {
-            if let Err(why) = copy_file(&copy.src, &copy.dst) {
+            if let Err(why) = copy_file(&copy.src, &_dst) {
                 eprintln!("  Error: {}", why);
             }
         } else {
-            if let Err(why) = stage_file(&copy.src, &copy.dst, staging_dir) {
+            if let Err(why) = stage_file(&copy.src, &_dst, staging_dir) {
                 eprintln!("  Error: {}", why);
             }
         }
@@ -85,16 +105,12 @@ fn execute_copies(copies: &[CopyLinkOptions], host: &str, staging_dir: &Path,
     }
 }
 
-/// Execute a set of link commands
+/// Executes a set of link commands
 fn execute_links(links: &[CopyLinkOptions], dry_run: bool, step_str: &str) {
     for link in links {
         print!("{} Link {} to {}", step_str, link.src, link.dst);
 
-        if dry_run {
-            println!(" (DRY RUN)");
-            continue;
-        }
-        println!("");
+        check_dry_run!(dry_run);
 
         if let Err(why) = link_file(&link.src, &link.dst) {
             eprintln!("  Error: {}", why);
@@ -102,43 +118,37 @@ fn execute_links(links: &[CopyLinkOptions], dry_run: bool, step_str: &str) {
     }
 }
 
-/// Execute a set of run commands
+/// Executes a set of run commands
 fn execute_runs(runs: &[RunOptions], tag_rules: &[String], host: &str,
                 staging_dir: &Path, dry_run: bool, step_str: &str) {
 
-    if !dry_run && host != "" {
-        for run in runs {
-            if let Err(why) = stage_file(&run.src, &run.src, staging_dir) {
-                eprintln!("Error: {}", why);
-            }
-        }
+    if host != "" {
+        // Copy scripts to remote machine
+        let run_copies: Vec<CopyLinkOptions> = runs.iter().map(|x| {
+            CopyLinkOptions { src: x.src.clone(), dst: x.src.clone() }
+        }).collect();
 
-        if let Err(why) = send_staged_files(staging_dir, host) {
-            eprintln!("Error: {}", why);
-        }
+        execute_copies(&run_copies, host, staging_dir, dry_run, step_str);
     }
 
     for run in runs {
-        let postfix = run.postfix.replace("$COLIRU_RULES", &tag_rules.join(" "));
+        let postfix = run.postfix.replace("$COLIRU_RULES",
+                                          &tag_rules.join(" "));
         let cmd = format!("{} {} {}", run.prefix, run.src, postfix);
-        if host == "" {
-            print!("{} Run {}", step_str, cmd);
-        } else {
-            print!("{} Run {} on {}", step_str, cmd, host);
+
+        print!("{} Run {}", step_str, cmd);
+        if host != "" {
+            print!(" on {}", host);
         }
 
-        if dry_run {
-            println!(" (DRY RUN)");
-            continue;
-        }
-        println!("");
+        check_dry_run!(dry_run);
 
         if host == "" {
             if let Err(why) = run_command(&cmd) {
                 eprintln!("  Error: {}", why);
             }
         } else {
-            let ssh_cmd = format!("cd .coliru && {}", &cmd);
+            let ssh_cmd = format!("cd {} && {}", SSH_INSTALL_DIR, &cmd);
             if let Err(why) = send_command(&ssh_cmd, host) {
                 eprintln!("  Error: {}", why);
             }

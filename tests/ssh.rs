@@ -15,6 +15,7 @@ fn test_ssh_standard() {
 [1/3] Copy gitconfig to {SSH_HOST}:~/test_ssh_standard/.gitconfig
 [2/3] Copy bashrc to {SSH_HOST}:~/test_ssh_standard/.bashrc
 [2/3] Copy vimrc to {SSH_HOST}:~/test_ssh_standard/.vimrc
+[2/3] Copy test_ssh_standard/script.sh to {SSH_HOST}:~/.coliru/test_ssh_standard/script.sh
 [2/3] Run sh test_ssh_standard/script.sh arg1 linux on {SSH_HOST}
 script.sh called with arg1 linux
 ");
@@ -43,6 +44,7 @@ fn test_ssh_run_alternate_tag_rules_1() {
     let expected = format!("\
 [2/3] Copy bashrc to {SSH_HOST}:~/test_ssh_run_alternate_tag_rules_1/.bashrc
 [2/3] Copy vimrc to {SSH_HOST}:~/test_ssh_run_alternate_tag_rules_1/.vimrc
+[2/3] Copy test_ssh_run_alternate_tag_rules_1/script.sh to {SSH_HOST}:~/.coliru/test_ssh_run_alternate_tag_rules_1/script.sh
 [2/3] Run sh test_ssh_run_alternate_tag_rules_1/script.sh arg1 linux ^windows on {SSH_HOST}
 script.sh called with arg1 linux ^windows
 ");
@@ -72,6 +74,7 @@ fn test_ssh_run_alternate_tag_rules_2() {
 [1/3] Copy gitconfig to {SSH_HOST}:~/test_ssh_run_alternate_tag_rules_2/.gitconfig
 [2/3] Copy bashrc to {SSH_HOST}:~/test_ssh_run_alternate_tag_rules_2/.bashrc
 [2/3] Copy vimrc to {SSH_HOST}:~/test_ssh_run_alternate_tag_rules_2/.vimrc
+[2/3] Copy test_ssh_run_alternate_tag_rules_2/script.sh to {SSH_HOST}:~/.coliru/test_ssh_run_alternate_tag_rules_2/script.sh
 [2/3] Run sh test_ssh_run_alternate_tag_rules_2/script.sh arg1 macos on {SSH_HOST}
 script.sh called with arg1 macos
 ");
@@ -100,6 +103,7 @@ fn test_ssh_dry_run() {
 [1/3] Copy gitconfig to {SSH_HOST}:~/test_ssh_dry_run/.gitconfig (DRY RUN)
 [2/3] Copy bashrc to {SSH_HOST}:~/test_ssh_dry_run/.bashrc (DRY RUN)
 [2/3] Copy vimrc to {SSH_HOST}:~/test_ssh_dry_run/.vimrc (DRY RUN)
+[2/3] Copy test_ssh_dry_run/script.sh to {SSH_HOST}:~/.coliru/test_ssh_dry_run/script.sh (DRY RUN)
 [2/3] Run sh test_ssh_dry_run/script.sh arg1 linux on {SSH_HOST} (DRY RUN)
 ");
     assert_eq!(&stderr_to_string(&mut cmd), "");
@@ -128,6 +132,7 @@ fn test_ssh_copy() {
 [1/3] Copy gitconfig to {SSH_HOST}:~/test_ssh_copy/.gitconfig
 [2/3] Copy bashrc to {SSH_HOST}:~/test_ssh_copy/.bashrc
 [2/3] Copy vimrc to {SSH_HOST}:~/test_ssh_copy/.vimrc
+[2/3] Copy test_ssh_copy/script.sh to {SSH_HOST}:~/.coliru/test_ssh_copy/script.sh
 [2/3] Run sh test_ssh_copy/script.sh arg1 linux on {SSH_HOST}
 script.sh called with arg1 linux
 ");
@@ -158,6 +163,7 @@ fn test_ssh_run_failure() {
 [1/3] Copy gitconfig to {SSH_HOST}:~/test_ssh_run_failure/.gitconfig
 [2/3] Copy bashrc to {SSH_HOST}:~/test_ssh_run_failure/.bashrc
 [2/3] Copy vimrc to {SSH_HOST}:~/test_ssh_run_failure/.vimrc
+[2/3] Copy test_ssh_run_failure/script.sh to {SSH_HOST}:~/.coliru/test_ssh_run_failure/script.sh
 [2/3] Run sh test_ssh_run_failure/script.sh arg1 linux on {SSH_HOST}
 ");
     let expected_stderr = "  Error: SSH exited with exit status: 1\n";
@@ -186,6 +192,7 @@ fn test_ssh_missing_file() {
 [1/3] Copy gitconfig to {SSH_HOST}:~/test_ssh_missing_file/.gitconfig
 [2/3] Copy bashrc to {SSH_HOST}:~/test_ssh_missing_file/.bashrc
 [2/3] Copy vimrc to {SSH_HOST}:~/test_ssh_missing_file/.vimrc
+[2/3] Copy test_ssh_missing_file/script.sh to {SSH_HOST}:~/.coliru/test_ssh_missing_file/script.sh
 [2/3] Run sh test_ssh_missing_file/script.sh arg1 linux on {SSH_HOST}
 script.sh called with arg1 linux
 ");
