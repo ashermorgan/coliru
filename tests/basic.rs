@@ -22,6 +22,7 @@ Options:
   -n, --dry-run                Do a trial run without any permanent changes
       --host <HOST>            Install dotfiles on another machine over SSH
       --copy                   Interpret link commands as copy commands
+      --no-color               Disable color output
   -h, --help                   Print help
   -V, --version                Print version
 

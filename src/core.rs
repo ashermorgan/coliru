@@ -1,6 +1,7 @@
 //! Manifest execution functions
 
 use anyhow::{Context, Result};
+use colored::{Colorize, ColoredString};
 use std::env::set_current_dir;
 use std::path::Path;
 use super::manifest::{CopyLinkOptions, RunOptions, parse_manifest_file};
@@ -30,7 +31,7 @@ macro_rules! check_dry_run {
 /// indicating whether an error occurred
 fn handle_error(result: Result<()>) -> bool {
     if let Err(why) = result {
-        eprintln!("  Error: {:#}", why);
+        eprintln!("  {} {:#}", "Error:".bold().red(), why);
         return true;
     }
     false
@@ -54,7 +55,7 @@ pub fn execute_manifest_file(path: &Path, tag_rules: Vec<String>, host: &str,
     for (i, step) in manifest.steps.iter().enumerate() {
         if !tags_match(&tag_rules, &step.tags) { continue; }
 
-        let step_str = format!("[{}/{}]", i+1, manifest.steps.len());
+        let step_str = format!("[{}/{}]", i+1, manifest.steps.len()).bold();
 
         errors |= execute_copies(&step.copy, host, temp_dir.path(), dry_run,
                                  &step_str);
@@ -76,7 +77,7 @@ pub fn execute_manifest_file(path: &Path, tag_rules: Vec<String>, host: &str,
 /// Executes a set of copy commands and returns a bool indicating whether any
 /// error occurred
 fn execute_copies(copies: &[CopyLinkOptions], host: &str, staging_dir: &Path,
-                  dry_run: bool, step_str: &str) -> bool {
+                  dry_run: bool, step_str: &ColoredString) -> bool {
 
     let mut errors = false;
 
@@ -116,8 +117,8 @@ fn execute_copies(copies: &[CopyLinkOptions], host: &str, staging_dir: &Path,
 
 /// Executes a set of link commands and returns a bool indicating whether any
 /// error occurred
-fn execute_links(links: &[CopyLinkOptions], dry_run: bool, step_str: &str)
-    -> bool {
+fn execute_links(links: &[CopyLinkOptions], dry_run: bool,
+                 step_str: &ColoredString) -> bool {
 
     let mut errors = false;
 
@@ -135,7 +136,8 @@ fn execute_links(links: &[CopyLinkOptions], dry_run: bool, step_str: &str)
 /// Executes a set of run commands and returns a bool indicating whether any
 /// error occurred
 fn execute_runs(runs: &[RunOptions], tag_rules: &[String], host: &str,
-                staging_dir: &Path, dry_run: bool, step_str: &str) -> bool {
+                staging_dir: &Path, dry_run: bool, step_str: &ColoredString) ->
+bool {
 
     let mut errors = false;
 

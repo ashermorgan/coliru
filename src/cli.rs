@@ -1,5 +1,6 @@
 //! The coliru command line interface
 
+use colored::{Colorize, control::set_override};
 use clap::{Parser, ColorChoice};
 use std::path::Path;
 use super::core::execute_manifest_file;
@@ -39,17 +40,24 @@ struct Args {
     /// Interpret link commands as copy commands
     #[arg(long)]
     pub copy: bool,
+
+    /// Disable color output
+    #[arg(long)]
+    pub no_color: bool,
 }
 
 /// Runs the coliru CLI
 pub fn run() {
     let args = Args::parse();
     let manifest_path = Path::new(&args.manifest);
+    if args.no_color {
+        set_override(false);
+    }
 
     match execute_manifest_file(&manifest_path, args.tag_rules, &args.host,
                                 args.dry_run, args.copy) {
         Err(why) => {
-            eprintln!("Error: {:#}", why);
+            eprintln!("{} {:#}", "Error:".bold().red(), why);
             std::process::exit(2);
         },
         Ok(minor_errors) => {
