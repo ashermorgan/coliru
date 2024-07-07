@@ -1,10 +1,10 @@
-//! Manifest execution functions
+//! Core manifest operation functions
 
 use anyhow::{Context, Result};
 use colored::{Colorize, ColoredString};
 use std::env::set_current_dir;
 use std::path::Path;
-use super::manifest::{CopyLinkOptions, RunOptions, parse_manifest_file};
+use super::manifest::{Manifest, CopyLinkOptions, RunOptions, get_tags};
 use super::tags::tags_match;
 use super::local::{copy_file, link_file, run_command};
 use super::ssh::{resolve_path, send_command, send_staged_files, stage_file};
@@ -37,15 +37,20 @@ fn handle_error(result: Result<()>) -> bool {
     false
 }
 
-/// Executes the steps in a coliru manifest file according to a set of tag rules
-///
-/// Returns an Err if a critical err occurs and returns a bool indicating
-/// whether any minor errors occurred otherwise
-pub fn execute_manifest_file(path: &Path, tag_rules: Vec<String>, host: &str,
-                             dry_run: bool, copy: bool) -> Result<bool> {
+/// Prints the available tags in a manifest
+pub fn list_tags(manifest: Manifest) {
+    for tag in get_tags(manifest) {
+        println!("{}", tag);
+    }
+}
 
-    let manifest = parse_manifest_file(path)
-        .context("Failed to parse manifest")?;
+/// Executes the steps in a coliru manifest according to a set of tag rules
+///
+/// Returns an Err if a critical error occurs and returns a bool indicating
+/// whether any minor errors occurred otherwise
+pub fn install_manifest(manifest: Manifest, tag_rules: Vec<String>, host: &str,
+                        dry_run: bool, copy: bool) -> Result<bool> {
+
     let temp_dir = tempdir().context("Failed to create temporary directory")?;
     set_current_dir(manifest.base_dir)
         .context("Failed to set working directory")?;

@@ -36,6 +36,7 @@ coliru manifest.yml --tag-rules tag1 tag2,tag3 ^tag4
 Some other helpful options include:
 
 - `--help`, `-h`: Print full help information
+- `--list-tags`, `-l`: List the tags in the manifest and quit without installing
 - `--dry-run`, `-n`: Do a trial run without any permanent changes
 - `--copy`: Interpret link commands as copy commands
 - `--host <HOST>`: Install dotfiles on another machine over SSH

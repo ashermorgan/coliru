@@ -3,6 +3,7 @@
 use anyhow::Result;
 use serde::Deserialize;
 use serde_yaml;
+use std::collections::HashSet;
 use std::fs::read_to_string;
 use std::path::{Path, PathBuf};
 
@@ -86,6 +87,21 @@ pub fn parse_manifest_file(path: &Path) -> Result<Manifest> {
         steps: raw_manifest.steps,
         base_dir: base_dir.to_path_buf(),
     })
+}
+
+/// Returns a sorted, de-duplicated vector of all tags in a manifest
+pub fn get_tags(manifest: Manifest) -> Vec<String> {
+    let mut tag_set: HashSet<String> = HashSet::new();
+
+    for step in manifest.steps {
+        for tag in step.tags {
+            tag_set.insert(tag);
+        }
+    }
+
+    let mut tags: Vec<String> = tag_set.iter().map(|s| s.to_owned()).collect();
+    tags.sort();
+    tags
 }
 
 #[cfg(test)]
@@ -195,5 +211,29 @@ mod tests {
         let actual = parse_manifest_file(manifest_path);
         assert_eq!(actual.is_ok(), true);
         assert_eq!(actual.unwrap(), expected);
+    }
+
+    #[test]
+    fn get_tags_basic() {
+        let manifest_path = Path::new("examples/test/manifest.yml");
+        let manifest = parse_manifest_file(manifest_path).unwrap();
+        let expected = vec![
+            String::from("linux"),
+            String::from("macos"),
+            String::from("windows"),
+        ];
+        let actual = get_tags(manifest);
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn get_tags_empty() {
+        let manifest = Manifest {
+            steps: vec![],
+            base_dir: PathBuf::from("examples/test/empty.yml"),
+        };
+        let expected: Vec<String> = vec![];
+        let actual = get_tags(manifest);
+        assert_eq!(actual, expected);
     }
 }

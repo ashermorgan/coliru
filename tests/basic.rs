@@ -19,6 +19,7 @@ Arguments:
 
 Options:
   -t, --tag-rules [<RULE>...]  The set of tag rules to enforce
+  -l, --list-tags              List available tags and quit without installing
   -n, --dry-run                Do a trial run without any permanent changes
       --host <HOST>            Install dotfiles on another machine over SSH
       --copy                   Interpret link commands as copy commands
@@ -27,10 +28,16 @@ Options:
   -V, --version                Print version
 
 Examples:
-  # Install dotfiles from manifest.yml with tags matching A && (B || C) && !D
+  # List tags in manifest
+  coliru manifest.yml --list-tags
+
+  # Preview installation steps with tags matching A && (B || C) && !D
+  coliru manifest.yml --tag-rules A B,C ^D --dry-run
+
+  # Install dotfiles on local machine
   coliru manifest.yml --tag-rules A B,C ^D
 
-  # Install dotfiles from manifest.yml to user@hostname over SSH
+  # Install dotfiles to user@hostname over SSH
   coliru manifest.yml --tag-rules A B,C ^D --host user@hostname
 ");
     let (stdout, stderr, exitcode) = run_command(&mut cmd);
@@ -166,4 +173,20 @@ fn test_basic_absolute_manifest() {
     assert_eq!(vim2_exists, false);
     assert_eq!(foo_exists, true);
     assert_eq!(log_exists, false);
+}
+
+#[test]
+fn test_basic_list_tags() {
+    let (_dirs, mut cmd) = setup_e2e_local("test_basic_list_tags");
+    cmd.args(["manifest.yml", "--list-tags", "-t", "windows"]);
+
+    let expected = "\
+linux
+macos
+windows
+";
+    let (stdout, stderr, exitcode) = run_command(&mut cmd);
+    assert_eq!(&stderr, "");
+    assert_eq!(&stdout, expected);
+    assert_eq!(exitcode, Some(0));
 }

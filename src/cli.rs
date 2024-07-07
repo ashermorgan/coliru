@@ -1,9 +1,11 @@
 //! The coliru command line interface
 
+use anyhow::{Context, Result};
 use colored::{Colorize, control::set_override};
 use clap::{Parser, ColorChoice};
 use std::path::Path;
-use super::core::execute_manifest_file;
+use super::core::{install_manifest, list_tags};
+use super::manifest::parse_manifest_file;
 
 /// CLI about description
 const HELP_ABOUT: &str = "A minimal, flexible, dotfile installer";
@@ -11,10 +13,16 @@ const HELP_ABOUT: &str = "A minimal, flexible, dotfile installer";
 /// CLI examples to be appended to help output
 const HELP_EXAMPLES: &str = "\
 Examples:
-  # Install dotfiles from manifest.yml with tags matching A && (B || C) && !D
+  # List tags in manifest
+  coliru manifest.yml --list-tags
+
+  # Preview installation steps with tags matching A && (B || C) && !D
+  coliru manifest.yml --tag-rules A B,C ^D --dry-run
+
+  # Install dotfiles on local machine
   coliru manifest.yml --tag-rules A B,C ^D
 
-  # Install dotfiles from manifest.yml to user@hostname over SSH
+  # Install dotfiles to user@hostname over SSH
   coliru manifest.yml --tag-rules A B,C ^D --host user@hostname";
 
 /// Arguments to the coliru CLI
@@ -28,6 +36,10 @@ struct Args {
     /// The set of tag rules to enforce
     #[arg(short, long, value_name="RULE", num_args=0..)]
     pub tag_rules: Vec<String>,
+
+    /// List available tags and quit without installing
+    #[arg(short, long)]
+    pub list_tags: bool,
 
     /// Do a trial run without any permanent changes
     #[arg(short = 'n', long)]
@@ -49,13 +61,8 @@ struct Args {
 /// Runs the coliru CLI
 pub fn run() {
     let args = Args::parse();
-    let manifest_path = Path::new(&args.manifest);
-    if args.no_color {
-        set_override(false);
-    }
 
-    match execute_manifest_file(&manifest_path, args.tag_rules, &args.host,
-                                args.dry_run, args.copy) {
+    match run_args(args) {
         Err(why) => {
             eprintln!("{} {:#}", "Error:".bold().red(), why);
             std::process::exit(2);
@@ -63,5 +70,26 @@ pub fn run() {
         Ok(minor_errors) => {
             std::process::exit(if minor_errors { 1 } else { 0 });
         },
+    }
+}
+
+/// Runs the coliru CLI according to a set of arguments
+///
+/// Returns an Err if a critical occurs, Ok(true) if minor errors occurred, and
+/// Ok(false) if no errors occurred.
+fn run_args(args: Args) -> Result<bool> {
+    if args.no_color {
+        set_override(false);
+    }
+
+    let manifest = parse_manifest_file(Path::new(&args.manifest))
+        .context("Failed to parse manifest")?;
+
+    if args.list_tags {
+        list_tags(manifest);
+        Ok(false)
+    } else {
+        install_manifest(manifest, args.tag_rules, &args.host, args.dry_run,
+                         args.copy)
     }
 }
