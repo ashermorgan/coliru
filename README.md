@@ -1,47 +1,66 @@
 # coliru
+
 A minimal, flexible, dotfile installer
 
-## Installation
-To install coliru, clone the repository and run `cargo install --path coliru/`
+## Features
 
-To uninstall coliru, run `cargo uninstall coliru`
+- Install dotfiles as copies and/or symlinks
+- Manage differences between machines using tags
+- Run custom scripts
+- Install dotfiles on remote machines over SSH
+
+## Installation
+
+Coliru binaries can be downloaded from the
+[GitHub releases page](https://github.com/ashermorgan/coliru/releases).
+
+Coliru can also be installed from source using Cargo:
+
+```
+cargo install --git https://github.com/ashermorgan/coliru
+
+# To uninstall:
+# cargo uninstall coliru
+```
 
 ## Usage
-Dotfiles are defined as a series of steps inside a manifest file that are
+
+Dotfile metadata is stored in a manifest file as a series of steps that can be
 executed conditionally based on tag rules. To install dotfiles, pass the
-manifest file and tag rules to coliru:
+location of the manifest file and the desired tag rules:
 
 ```
-coliru path/to/manifest.yml --tag-rules tag1 tag2 ^tag3
-```
-
-Coliru can also install dotfiles on remote machines over SSH:
-
-```
-coliru path/to/manifest.yml --tag-rules tag1 tag2 ^tag3 --host user@hostname
+coliru manifest.yml --tag-rules tag1 tag2,tag3 ^tag4
 ```
 
 Some other helpful options include:
 
 - `--help`, `-h`: Print full help information
 - `--dry-run`, `-n`: Do a trial run without any permanent changes
-- `--copy`, `-c`: Interpret link commands as copy commands
+- `--copy`: Interpret link commands as copy commands
+- `--host <HOST>`: Install dotfiles on another machine over SSH
 
-## Manifest File
-Manifests are defined using YAML. Each manifest contains a series of steps that
-are executed to install the dotfiles. Each step contains an array of tags and
-any number of copy, link, or run commands. Each command is run from the
-directory containing the manifest file. The copy command copies a file from a
-source (`src`) to a (`dst`). The link command links a file from a source (`src`)
-to a (`dst`) using symbolic links on Unix platforms and hard links on Windows.
-Finally, the run command executes a script (`src`) from the command line, using
-`sh` on Unix platforms and `cmd` on Windows, with an optional `prefix` (e.g.
-`python3`) or `postfix` (e.g. `arg1 arg2 arg3`) string. Inside `postfix`,
-`$COLIRU_RULES` will be expanded into a space-delimited list of the current tag
-rules.
+### Manifest File
+
+Manifests are defined using YAML as an array of steps that are executed to
+install the dotfiles, which are located in the same directory as the manifest.
+Each step may contain an array of copy, link, and/or run commands, in addition
+to an array of tags. Each command is run from the directory containing the
+manifest file, or relative to the `~/coliru` directory when installing over SSH.
+
+- The **copy** command copies a dotfile (`src`) to a destination (`dst`).
+- The **link** command links a dotfile (`src`) to a destination (`dst`) using
+  symbolic links on Unix and hard links on Windows. Coliru will run copy
+  commands in place of link commands when installing over SSH.
+- The **run** command executes a script (`src`) from the command line, using
+  `sh` on Unix and `cmd` on Windows, with an optional `prefix` (e.g. `python3`)
+  or `postfix` (e.g. `arg1 arg2 arg3`) string. Inside `postfix`, `$COLIRU_RULES`
+  will be expanded into a space-delimited list of the current tag rules. When
+  installing over SSH, scripts are copied to the `~/.coliru` directory on the
+  remote machine before they are executed.
 
 Example YAML manifest (see
-[`examples/basic/manifest.yml`](examples/basic/manifest.yml) for more details):
+[`examples/basic/`](examples/basic/) for a complete example dotfile repository):
 
 ```yml
 steps:
@@ -70,13 +89,36 @@ steps:
     tags: [ windows ]
 ```
 
-## Tag Rules
+### Tags and Tag Rules
+
+Tags enable the installation of a subset of manifest steps based on a set of tag
+rules. Common tags include supported operating systems (e.g. `linux`, `macos`,
+and/or `windows`), types of machines (e.g. `work`, `personal`, `server`, etc),
+and whether the step requires elevated privileges (e.g. `system` vs `user`).
+
 Tag rules are specified on the command line using the `--tag-rules` option. In
-order for a manifest step to be executed, its tags must satisfy all of the tag
-rules. If no tags rules are provided, all manifest steps will be executed. Each
-tag rule contains a comma separated list of tags that will satisfy the rule. A
-leading caret (`^`) will negate the entire rule. In other words, commas
-correspond to OR, carets to NOT, and the spaces between rules to AND. So the tag
-rules `A B,C ^D,E` are equivalent to `A && (B || C) && !(D || E)`. Common tags
-include supported operating systems and whether the step requires elevated
-privileges.
+order for the commands in a step to be executed, its tags must satisfy all of
+the tag rules. If no tags rules are provided, all manifest steps will be
+executed. Each tag rule contains a comma separated list of tags that can satisfy
+the rule. A leading caret (`^`) will negate the entire rule.
+
+In other words, commas correspond to OR, carets to NOT, and the spaces between
+rules to AND. So `--tag-rules A B,C ^D,E` looks for steps with the tags `A && (B
+|| C) && !(D || E)`.
+
+## Development
+
+Use Cargo to build, test, and run coliru:
+
+```
+cargo build
+cargo test
+cargo run -- --help
+```
+
+Some of coliru's integration and end-to-end tests interact with a test SSH
+server, which can be started with Docker Compose:
+
+```
+docker compose -f tests/server/compose.yml up
+```
