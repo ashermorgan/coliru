@@ -109,6 +109,7 @@ fn test_basic_absolute_manifest() {
 
     let expected = "\
 [1/3] Copy gitconfig to ~/.gitconfig (DRY RUN)
+[2/3] Copy foo to foo (DRY RUN)
 [2/3] Link bashrc to ~/.bashrc (DRY RUN)
 [2/3] Link vimrc to ~/.vimrc (DRY RUN)
 [2/3] Run sh script.sh arg1 linux (DRY RUN)
@@ -123,11 +124,13 @@ fn test_basic_absolute_manifest() {
     let git_exists = dirs.home.join(".gitconfig").exists();
     let vim1_exists = dirs.home.join(".vimrc").exists();
     let vim2_exists = dirs.home.join("_vimrc").exists();
+    let foo_exists = dirs.local.join("foo").exists();
     let log_exists = dirs.home.join("log.txt").exists();
     assert_eq!(bash_exists, false);
     assert_eq!(git_exists, false);
     assert_eq!(vim1_exists, false);
     assert_eq!(vim2_exists, false);
+    assert_eq!(foo_exists, true);
     assert_eq!(log_exists, false);
 }
 
@@ -140,6 +143,7 @@ fn test_basic_absolute_manifest() {
 
     let expected = "\
 [1/3] Copy gitconfig to .gitconfig (DRY RUN)
+[2/3] Copy foo to foo (DRY RUN)
 [2/3] Link bashrc to .bashrc (DRY RUN)
 [2/3] Link vimrc to .vimrc (DRY RUN)
 [2/3] Run sh script.sh arg1 linux (DRY RUN)
@@ -154,10 +158,12 @@ fn test_basic_absolute_manifest() {
     let git_exists = dirs.local.join(".gitconfig").exists();
     let vim1_exists = dirs.local.join(".vimrc").exists();
     let vim2_exists = dirs.local.join("_vimrc").exists();
+    let foo_exists = dirs.local.join("foo").exists();
     let log_exists = dirs.local.join("log.txt").exists();
     assert_eq!(bash_exists, false);
     assert_eq!(git_exists, false);
     assert_eq!(vim1_exists, false);
     assert_eq!(vim2_exists, false);
+    assert_eq!(foo_exists, true);
     assert_eq!(log_exists, false);
 }

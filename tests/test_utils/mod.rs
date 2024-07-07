@@ -183,6 +183,7 @@ fn copy_manifest(dir: &Path, home_dir: &str, script_dir: &str) {
     fs::create_dir_all(&dir.join(script_dir)).unwrap();
     copy_file("scripts/script.bat");
     copy_file("scripts/script.sh");
+    copy_file("scripts/foo");
     copy_file("bashrc");
     copy_file("gitconfig");
     copy_file("vimrc");

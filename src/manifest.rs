@@ -142,7 +142,12 @@ mod tests {
                     ],
                 },
                 Step {
-                    copy: vec![],
+                    copy: vec![
+                        CopyLinkOptions {
+                            src: String::from("scripts/foo"),
+                            dst: String::from("scripts/foo"),
+                        },
+                    ],
                     link: vec![
                         CopyLinkOptions {
                             src: String::from("bashrc"),
@@ -163,7 +168,12 @@ mod tests {
                     tags: vec![String::from("linux"), String::from("macos")],
                 },
                 Step {
-                    copy: vec![],
+                    copy: vec![
+                        CopyLinkOptions {
+                            src: String::from("scripts/foo"),
+                            dst: String::from("scripts/foo"),
+                        },
+                    ],
                     link: vec![
                         CopyLinkOptions {
                             src: String::from("vimrc"),

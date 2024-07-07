@@ -15,11 +15,12 @@ fn test_ssh_standard() {
 
     let expected = format!("\
 [1/3] Copy gitconfig to {SSH_HOST}:~/test_ssh_standard/.gitconfig
+[2/3] Copy test_ssh_standard/foo to {SSH_HOST}:~/.coliru/test_ssh_standard/foo
 [2/3] Copy bashrc to {SSH_HOST}:~/test_ssh_standard/.bashrc
 [2/3] Copy vimrc to {SSH_HOST}:~/test_ssh_standard/.vimrc
 [2/3] Copy test_ssh_standard/script.sh to {SSH_HOST}:~/.coliru/test_ssh_standard/script.sh
 [2/3] Run sh test_ssh_standard/script.sh arg1 linux on {SSH_HOST}
-script.sh called with arg1 linux
+foo!
 ");
     let (stdout, stderr, exitcode) = run_command(&mut cmd);
     assert_eq!(&stderr, "");
@@ -31,11 +32,13 @@ script.sh called with arg1 linux
     let git_contents = read_file(&dirs.ssh.join(".gitconfig"));
     let vim1_contents = read_file(&dirs.ssh.join(".vimrc"));
     let vim2_exists = dirs.ssh.join("_vimrc").exists();
+    let foo_contents = read_file(&dirs.ssh_cwd.join("foo"));
     let log_contents = read_file(&dirs.ssh_cwd.join("log.txt"));
     assert_eq!(bash_contents, "bash #1\n");
     assert_eq!(git_contents, "git #1\n");
     assert_eq!(vim1_contents, "vim #1\n");
     assert_eq!(vim2_exists, false);
+    assert_eq!(foo_contents, "foo!\n");
     assert_eq!(log_contents, "script.sh called with arg1 linux\n");
 }
 
@@ -46,11 +49,12 @@ fn test_ssh_run_alternate_tag_rules_1() {
     cmd.args(["manifest.yml", "-t", "linux", "^windows"]);
 
     let expected = format!("\
+[2/3] Copy test_ssh_run_alternate_tag_rules_1/foo to {SSH_HOST}:~/.coliru/test_ssh_run_alternate_tag_rules_1/foo
 [2/3] Copy bashrc to {SSH_HOST}:~/test_ssh_run_alternate_tag_rules_1/.bashrc
 [2/3] Copy vimrc to {SSH_HOST}:~/test_ssh_run_alternate_tag_rules_1/.vimrc
 [2/3] Copy test_ssh_run_alternate_tag_rules_1/script.sh to {SSH_HOST}:~/.coliru/test_ssh_run_alternate_tag_rules_1/script.sh
 [2/3] Run sh test_ssh_run_alternate_tag_rules_1/script.sh arg1 linux ^windows on {SSH_HOST}
-script.sh called with arg1 linux ^windows
+foo!
 ");
     let (stdout, stderr, exitcode) = run_command(&mut cmd);
     assert_eq!(&stderr, "");
@@ -62,11 +66,13 @@ script.sh called with arg1 linux ^windows
     let git_exists = dirs.ssh.join(".gitconfig").exists();
     let vim1_contents = read_file(&dirs.ssh.join(".vimrc"));
     let vim2_exists = dirs.ssh.join("_vimrc").exists();
+    let foo_contents = read_file(&dirs.ssh_cwd.join("foo"));
     let log_contents = read_file(&dirs.ssh_cwd.join("log.txt"));
     assert_eq!(bash_contents, "bash #1\n");
     assert_eq!(git_exists, false);
     assert_eq!(vim1_contents, "vim #1\n");
     assert_eq!(vim2_exists, false);
+    assert_eq!(foo_contents, "foo!\n");
     assert_eq!(log_contents, "script.sh called with arg1 linux ^windows\n");
 }
 
@@ -78,11 +84,12 @@ fn test_ssh_run_alternate_tag_rules_2() {
 
     let expected = format!("\
 [1/3] Copy gitconfig to {SSH_HOST}:~/test_ssh_run_alternate_tag_rules_2/.gitconfig
+[2/3] Copy test_ssh_run_alternate_tag_rules_2/foo to {SSH_HOST}:~/.coliru/test_ssh_run_alternate_tag_rules_2/foo
 [2/3] Copy bashrc to {SSH_HOST}:~/test_ssh_run_alternate_tag_rules_2/.bashrc
 [2/3] Copy vimrc to {SSH_HOST}:~/test_ssh_run_alternate_tag_rules_2/.vimrc
 [2/3] Copy test_ssh_run_alternate_tag_rules_2/script.sh to {SSH_HOST}:~/.coliru/test_ssh_run_alternate_tag_rules_2/script.sh
 [2/3] Run sh test_ssh_run_alternate_tag_rules_2/script.sh arg1 macos on {SSH_HOST}
-script.sh called with arg1 macos
+foo!
 ");
     let (stdout, stderr, exitcode) = run_command(&mut cmd);
     assert_eq!(&stderr, "");
@@ -94,11 +101,13 @@ script.sh called with arg1 macos
     let git_contents = read_file(&dirs.ssh.join(".gitconfig"));
     let vim1_contents = read_file(&dirs.ssh.join(".vimrc"));
     let vim2_exists = dirs.ssh.join("_vimrc").exists();
+    let foo_contents = read_file(&dirs.ssh_cwd.join("foo"));
     let log_contents = read_file(&dirs.ssh_cwd.join("log.txt"));
     assert_eq!(bash_contents, "bash #1\n");
     assert_eq!(git_contents, "git #1\n");
     assert_eq!(vim1_contents, "vim #1\n");
     assert_eq!(vim2_exists, false);
+    assert_eq!(foo_contents, "foo!\n");
     assert_eq!(log_contents, "script.sh called with arg1 macos\n");
 }
 
@@ -109,6 +118,7 @@ fn test_ssh_dry_run() {
 
     let expected = format!("\
 [1/3] Copy gitconfig to {SSH_HOST}:~/test_ssh_dry_run/.gitconfig (DRY RUN)
+[2/3] Copy test_ssh_dry_run/foo to {SSH_HOST}:~/.coliru/test_ssh_dry_run/foo (DRY RUN)
 [2/3] Copy bashrc to {SSH_HOST}:~/test_ssh_dry_run/.bashrc (DRY RUN)
 [2/3] Copy vimrc to {SSH_HOST}:~/test_ssh_dry_run/.vimrc (DRY RUN)
 [2/3] Copy test_ssh_dry_run/script.sh to {SSH_HOST}:~/.coliru/test_ssh_dry_run/script.sh (DRY RUN)
@@ -124,11 +134,13 @@ fn test_ssh_dry_run() {
     let git_exists = dirs.ssh.join(".gitconfig").exists();
     let vim1_exists = dirs.ssh.join(".vimrc").exists();
     let vim2_exists = dirs.ssh.join("_vimrc").exists();
+    let foo_exists = dirs.ssh_cwd.join("foo").exists();
     let log_exists = dirs.ssh_cwd.join("log.txt").exists();
     assert_eq!(bash_exists, false);
     assert_eq!(git_exists, false);
     assert_eq!(vim1_exists, false);
     assert_eq!(vim2_exists, false);
+    assert_eq!(foo_exists, false);
     assert_eq!(log_exists, false);
 }
 
@@ -140,11 +152,12 @@ fn test_ssh_copy() {
 
     let expected = format!("\
 [1/3] Copy gitconfig to {SSH_HOST}:~/test_ssh_copy/.gitconfig
+[2/3] Copy test_ssh_copy/foo to {SSH_HOST}:~/.coliru/test_ssh_copy/foo
 [2/3] Copy bashrc to {SSH_HOST}:~/test_ssh_copy/.bashrc
 [2/3] Copy vimrc to {SSH_HOST}:~/test_ssh_copy/.vimrc
 [2/3] Copy test_ssh_copy/script.sh to {SSH_HOST}:~/.coliru/test_ssh_copy/script.sh
 [2/3] Run sh test_ssh_copy/script.sh arg1 linux on {SSH_HOST}
-script.sh called with arg1 linux
+foo!
 ");
     let (stdout, stderr, exitcode) = run_command(&mut cmd);
     assert_eq!(&stderr, "");
@@ -156,11 +169,13 @@ script.sh called with arg1 linux
     let git_contents = read_file(&dirs.ssh.join(".gitconfig"));
     let vim1_contents = read_file(&dirs.ssh.join(".vimrc"));
     let vim2_exists = dirs.ssh.join("_vimrc").exists();
+    let foo_contents = read_file(&dirs.ssh_cwd.join("foo"));
     let log_contents = read_file(&dirs.ssh_cwd.join("log.txt"));
     assert_eq!(bash_contents, "bash #1\n");
     assert_eq!(git_contents, "git #1\n");
     assert_eq!(vim1_contents, "vim #1\n");
     assert_eq!(vim2_exists, false);
+    assert_eq!(foo_contents, "foo!\n");
     assert_eq!(log_contents, "script.sh called with arg1 linux\n");
 }
 
@@ -173,6 +188,7 @@ fn test_ssh_run_failure() {
 
     let expected_stdout = format!("\
 [1/3] Copy gitconfig to {SSH_HOST}:~/test_ssh_run_failure/.gitconfig
+[2/3] Copy test_ssh_run_failure/foo to {SSH_HOST}:~/.coliru/test_ssh_run_failure/foo
 [2/3] Copy bashrc to {SSH_HOST}:~/test_ssh_run_failure/.bashrc
 [2/3] Copy vimrc to {SSH_HOST}:~/test_ssh_run_failure/.vimrc
 [2/3] Copy test_ssh_run_failure/script.sh to {SSH_HOST}:~/.coliru/test_ssh_run_failure/script.sh
@@ -189,10 +205,12 @@ fn test_ssh_run_failure() {
     let git_contents = read_file(&dirs.ssh.join(".gitconfig"));
     let vim1_contents = read_file(&dirs.ssh.join(".vimrc"));
     let vim2_exists = dirs.ssh.join("_vimrc").exists();
+    let foo_contents = read_file(&dirs.ssh_cwd.join("foo"));
     assert_eq!(bash_contents, "bash #1\n");
     assert_eq!(git_contents, "git #1\n");
     assert_eq!(vim1_contents, "vim #1\n");
     assert_eq!(vim2_exists, false);
+    assert_eq!(foo_contents, "foo!\n");
 }
 
 #[test]
@@ -204,11 +222,12 @@ fn test_ssh_missing_file() {
 
     let expected_stdout = format!("\
 [1/3] Copy gitconfig to {SSH_HOST}:~/test_ssh_missing_file/.gitconfig
+[2/3] Copy test_ssh_missing_file/foo to {SSH_HOST}:~/.coliru/test_ssh_missing_file/foo
 [2/3] Copy bashrc to {SSH_HOST}:~/test_ssh_missing_file/.bashrc
 [2/3] Copy vimrc to {SSH_HOST}:~/test_ssh_missing_file/.vimrc
 [2/3] Copy test_ssh_missing_file/script.sh to {SSH_HOST}:~/.coliru/test_ssh_missing_file/script.sh
 [2/3] Run sh test_ssh_missing_file/script.sh arg1 linux on {SSH_HOST}
-script.sh called with arg1 linux
+foo!
 ");
     let expected_stderr = "  Error: Failed to copy vimrc to staging directory: \
                            No such file or directory (os error 2)\n";
@@ -220,8 +239,46 @@ script.sh called with arg1 linux
     // Assert files are correctly copied/run
     let bash_contents = read_file(&dirs.ssh.join(".bashrc"));
     let git_contents = read_file(&dirs.ssh.join(".gitconfig"));
+    let foo_contents = read_file(&dirs.ssh_cwd.join("foo"));
     let log_contents = read_file(&dirs.ssh_cwd.join("log.txt"));
     assert_eq!(bash_contents, "bash #1\n");
     assert_eq!(git_contents, "git #1\n");
+    assert_eq!(foo_contents, "foo!\n");
+    assert_eq!(log_contents, "script.sh called with arg1 linux\n");
+}
+
+#[test]
+#[cfg(target_family = "unix")]
+fn test_ssh_different_cwd() {
+    let (dirs, mut cmd) = setup_e2e_ssh("test_ssh_different_cwd");
+    cmd.current_dir(&dirs.local.parent().unwrap());
+    cmd.args(["test_ssh_different_cwd/manifest.yml", "-t", "linux"]);
+
+    let expected = format!("\
+[1/3] Copy gitconfig to {SSH_HOST}:~/test_ssh_different_cwd/.gitconfig
+[2/3] Copy test_ssh_different_cwd/foo to {SSH_HOST}:~/.coliru/test_ssh_different_cwd/foo
+[2/3] Copy bashrc to {SSH_HOST}:~/test_ssh_different_cwd/.bashrc
+[2/3] Copy vimrc to {SSH_HOST}:~/test_ssh_different_cwd/.vimrc
+[2/3] Copy test_ssh_different_cwd/script.sh to {SSH_HOST}:~/.coliru/test_ssh_different_cwd/script.sh
+[2/3] Run sh test_ssh_different_cwd/script.sh arg1 linux on {SSH_HOST}
+foo!
+");
+    let (stdout, stderr, exitcode) = run_command(&mut cmd);
+    assert_eq!(&stderr, "");
+    assert_eq!(&stdout, &expected);
+    assert_eq!(exitcode, Some(0));
+
+    // Assert files are correctly copied/run
+    let bash_contents = read_file(&dirs.ssh.join(".bashrc"));
+    let git_contents = read_file(&dirs.ssh.join(".gitconfig"));
+    let vim1_contents = read_file(&dirs.ssh.join(".vimrc"));
+    let vim2_exists = dirs.ssh.join("_vimrc").exists();
+    let foo_contents = read_file(&dirs.ssh_cwd.join("foo"));
+    let log_contents = read_file(&dirs.ssh_cwd.join("log.txt"));
+    assert_eq!(bash_contents, "bash #1\n");
+    assert_eq!(git_contents, "git #1\n");
+    assert_eq!(vim1_contents, "vim #1\n");
+    assert_eq!(vim2_exists, false);
+    assert_eq!(foo_contents, "foo!\n");
     assert_eq!(log_contents, "script.sh called with arg1 linux\n");
 }

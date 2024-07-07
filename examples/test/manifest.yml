@@ -7,7 +7,10 @@ steps:
       dst: ~/.gitconfig
     tags: [ windows, linux, macos ]
 
-  - link:
+  - copy:
+    - src: scripts/foo # foo is a "run dependency" for script.sh
+      dst: scripts/foo
+    link:
     - src: bashrc
       dst: ~/.bashrc
     - src: vimrc
@@ -18,7 +21,10 @@ steps:
       postfix: arg1 $COLIRU_RULES
     tags: [ linux, macos ]
 
-  - link:
+  - copy:
+    - src: scripts/foo # foo is a "run dependency" for script.bat
+      dst: scripts/foo
+    link:
     - src: vimrc
       dst: ~/_vimrc
     run:

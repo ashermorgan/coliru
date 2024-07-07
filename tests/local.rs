@@ -13,10 +13,11 @@ fn test_local_standard() {
 
     let expected = "\
 [1/3] Copy gitconfig to ~/.gitconfig
+[2/3] Copy foo to foo
 [2/3] Link bashrc to ~/.bashrc
 [2/3] Link vimrc to ~/.vimrc
 [2/3] Run sh script.sh arg1 linux
-script.sh called with arg1 linux
+foo!
 ";
     let (stdout, stderr, exitcode) = run_command(&mut cmd);
     assert_eq!(&stderr, "");
@@ -31,11 +32,13 @@ script.sh called with arg1 linux
     let git_contents = read_file(&dirs.home.join(".gitconfig"));
     let vim1_contents = read_file(&dirs.home.join(".vimrc"));
     let vim2_exists = dirs.home.join("_vimrc").exists();
+    let foo_contents = read_file(&dirs.local.join("foo"));
     let log_contents = read_file(&dirs.local.join("log.txt"));
     assert_eq!(bash_contents, "bash #2\n");
     assert_eq!(git_contents, "git #1\n");
     assert_eq!(vim1_contents, "vim #2\n");
     assert_eq!(vim2_exists, false);
+    assert_eq!(foo_contents, "foo!\n");
     assert_eq!(log_contents, "script.sh called with arg1 linux\n");
 }
 
@@ -47,9 +50,10 @@ fn test_local_standard() {
 
     let expected = "\
 [1/3] Copy gitconfig to .gitconfig
+[3/3] Copy foo to foo
 [3/3] Link vimrc to _vimrc
 [3/3] Run  script.bat arg1 windows
-script.bat called with arg1 windows\r
+foo!\r
 ";
     let (stdout, stderr, exitcode) = run_command(&mut cmd);
     assert_eq!(&stderr, "");
@@ -63,11 +67,13 @@ script.bat called with arg1 windows\r
     let git_contents = read_file(&dirs.local.join(".gitconfig"));
     let vim1_exists = dirs.local.join(".vimrc").exists();
     let vim2_contents = read_file(&dirs.local.join("_vimrc"));
+    let foo_contents = read_file(&dirs.local.join("foo"));
     let log_contents = read_file(&dirs.local.join("log.txt"));
     assert_eq!(bash_exists, false);
     assert_eq!(git_contents, "git #1\r\n");
     assert_eq!(vim1_exists, false);
     assert_eq!(vim2_contents, "vim #2\r\n");
+    assert_eq!(foo_contents, "foo!\r\n");
     assert_eq!(log_contents, "script.bat called with arg1 windows \r\n");
 }
 
@@ -78,10 +84,11 @@ fn test_local_run_alternate_tag_rules_1() {
     cmd.args(["manifest.yml", "-t", "linux", "^windows"]);
 
     let expected = "\
+[2/3] Copy foo to foo
 [2/3] Link bashrc to ~/.bashrc
 [2/3] Link vimrc to ~/.vimrc
 [2/3] Run sh script.sh arg1 linux ^windows
-script.sh called with arg1 linux ^windows
+foo!
 ";
     let (stdout, stderr, exitcode) = run_command(&mut cmd);
     assert_eq!(&stderr, "");
@@ -95,11 +102,13 @@ script.sh called with arg1 linux ^windows
     let git_exists = dirs.home.join(".gitconfig").exists();
     let vim1_contents = read_file(&dirs.home.join(".vimrc"));
     let vim2_exists = dirs.home.join("_vimrc").exists();
+    let foo_contents = read_file(&dirs.local.join("foo"));
     let log_contents = read_file(&dirs.local.join("log.txt"));
     assert_eq!(bash_contents, "bash #2\n");
     assert_eq!(git_exists, false);
     assert_eq!(vim1_contents, "vim #2\n");
     assert_eq!(vim2_exists, false);
+    assert_eq!(foo_contents, "foo!\n");
     assert_eq!(log_contents, "script.sh called with arg1 linux ^windows\n");
 }
 
@@ -111,10 +120,11 @@ fn test_local_run_alternate_tag_rules_2() {
 
     let expected = "\
 [1/3] Copy gitconfig to ~/.gitconfig
+[2/3] Copy foo to foo
 [2/3] Link bashrc to ~/.bashrc
 [2/3] Link vimrc to ~/.vimrc
 [2/3] Run sh script.sh arg1 macos
-script.sh called with arg1 macos
+foo!
 ";
     let (stdout, stderr, exitcode) = run_command(&mut cmd);
     assert_eq!(&stderr, "");
@@ -129,11 +139,13 @@ script.sh called with arg1 macos
     let git_contents = read_file(&dirs.home.join(".gitconfig"));
     let vim1_contents = read_file(&dirs.home.join(".vimrc"));
     let vim2_exists = dirs.home.join("_vimrc").exists();
+    let foo_contents = read_file(&dirs.local.join("foo"));
     let log_contents = read_file(&dirs.local.join("log.txt"));
     assert_eq!(bash_contents, "bash #2\n");
     assert_eq!(git_contents, "git #1\n");
     assert_eq!(vim1_contents, "vim #2\n");
     assert_eq!(vim2_exists, false);
+    assert_eq!(foo_contents, "foo!\n");
     assert_eq!(log_contents, "script.sh called with arg1 macos\n");
 }
 
@@ -145,6 +157,7 @@ fn test_local_dry_run() {
 
     let expected = "\
 [1/3] Copy gitconfig to ~/.gitconfig (DRY RUN)
+[2/3] Copy foo to foo (DRY RUN)
 [2/3] Link bashrc to ~/.bashrc (DRY RUN)
 [2/3] Link vimrc to ~/.vimrc (DRY RUN)
 [2/3] Run sh script.sh arg1 linux (DRY RUN)
@@ -159,11 +172,13 @@ fn test_local_dry_run() {
     let git_exists = dirs.home.join(".gitconfig").exists();
     let vim1_exists = dirs.home.join(".vimrc").exists();
     let vim2_exists = dirs.home.join("_vimrc").exists();
+    let foo_exists = dirs.local.join("foo").exists();
     let log_exists = dirs.local.join("log.txt").exists();
     assert_eq!(bash_exists, false);
     assert_eq!(git_exists, false);
     assert_eq!(vim1_exists, false);
     assert_eq!(vim2_exists, false);
+    assert_eq!(foo_exists, true);
     assert_eq!(log_exists, false);
 }
 
@@ -175,6 +190,7 @@ fn test_local_dry_run() {
 
     let expected = "\
 [1/3] Copy gitconfig to .gitconfig (DRY RUN)
+[3/3] Copy foo to foo (DRY RUN)
 [3/3] Link vimrc to _vimrc (DRY RUN)
 [3/3] Run  script.bat arg1 windows (DRY RUN)
 ";
@@ -188,11 +204,13 @@ fn test_local_dry_run() {
     let git_exists = dirs.local.join(".gitconfig").exists();
     let vim1_exists = dirs.local.join(".vimrc").exists();
     let vim2_exists = dirs.local.join("_vimrc").exists();
+    let foo_exists = dirs.local.join("foo").exists();
     let log_exists = dirs.local.join("log.txt").exists();
     assert_eq!(bash_exists, false);
     assert_eq!(git_exists, false);
     assert_eq!(vim1_exists, false);
     assert_eq!(vim2_exists, false);
+    assert_eq!(foo_exists, true);
     assert_eq!(log_exists, false);
 }
 
@@ -204,10 +222,11 @@ fn test_local_copy() {
 
     let expected = "\
 [1/3] Copy gitconfig to ~/.gitconfig
+[2/3] Copy foo to foo
 [2/3] Copy bashrc to ~/.bashrc
 [2/3] Copy vimrc to ~/.vimrc
 [2/3] Run sh script.sh arg1 linux
-script.sh called with arg1 linux
+foo!
 ";
     let (stdout, stderr, exitcode) = run_command(&mut cmd);
     assert_eq!(&stderr, "");
@@ -222,11 +241,13 @@ script.sh called with arg1 linux
     let git_contents = read_file(&dirs.home.join(".gitconfig"));
     let vim1_contents = read_file(&dirs.home.join(".vimrc"));
     let vim2_exists = dirs.home.join("_vimrc").exists();
+    let foo_contents = read_file(&dirs.local.join("foo"));
     let log_contents = read_file(&dirs.local.join("log.txt"));
     assert_eq!(bash_contents, "bash #1\n");
     assert_eq!(git_contents, "git #1\n");
     assert_eq!(vim1_contents, "vim #1\n");
     assert_eq!(vim2_exists, false);
+    assert_eq!(foo_contents, "foo!\n");
     assert_eq!(log_contents, "script.sh called with arg1 linux\n");
 }
 
@@ -238,9 +259,10 @@ fn test_local_copy() {
 
     let expected = "\
 [1/3] Copy gitconfig to .gitconfig
+[3/3] Copy foo to foo
 [3/3] Copy vimrc to _vimrc
 [3/3] Run  script.bat arg1 windows
-script.bat called with arg1 windows\r
+foo!\r
 ";
     let (stdout, stderr, exitcode) = run_command(&mut cmd);
     assert_eq!(&stderr, "");
@@ -254,11 +276,13 @@ script.bat called with arg1 windows\r
     let git_contents = read_file(&dirs.local.join(".gitconfig"));
     let vim1_exists = dirs.local.join(".vimrc").exists();
     let vim2_contents = read_file(&dirs.local.join("_vimrc"));
+    let foo_contents = read_file(&dirs.local.join("foo"));
     let log_contents = read_file(&dirs.local.join("log.txt"));
     assert_eq!(bash_exists, false);
     assert_eq!(git_contents, "git #1\r\n");
     assert_eq!(vim1_exists, false);
     assert_eq!(vim2_contents, "vim #1\r\n");
+    assert_eq!(foo_contents, "foo!\r\n");
     assert_eq!(log_contents, "script.bat called with arg1 windows \r\n");
 }
 
@@ -271,6 +295,7 @@ fn test_local_run_failure() {
 
     let expected_stdout = "\
 [1/3] Copy gitconfig to ~/.gitconfig
+[2/3] Copy foo to foo
 [2/3] Link bashrc to ~/.bashrc
 [2/3] Link vimrc to ~/.vimrc
 [2/3] Run sh script.sh arg1 linux
@@ -290,10 +315,12 @@ fn test_local_run_failure() {
     let git_contents = read_file(&dirs.home.join(".gitconfig"));
     let vim1_contents = read_file(&dirs.home.join(".vimrc"));
     let vim2_exists = dirs.home.join("_vimrc").exists();
+    let foo_contents = read_file(&dirs.local.join("foo"));
     assert_eq!(bash_contents, "bash #2\n");
     assert_eq!(git_contents, "git #1\n");
     assert_eq!(vim1_contents, "vim #2\n");
     assert_eq!(vim2_exists, false);
+    assert_eq!(foo_contents, "foo!\n");
 }
 
 #[test]
@@ -305,6 +332,7 @@ fn test_local_run_failure() {
 
     let expected_stdout = "\
 [1/3] Copy gitconfig to .gitconfig
+[3/3] Copy foo to foo
 [3/3] Link vimrc to _vimrc
 [3/3] Run  script.bat arg1 windows
 ";
@@ -322,10 +350,12 @@ fn test_local_run_failure() {
     let git_contents = read_file(&dirs.local.join(".gitconfig"));
     let vim1_exists = dirs.local.join(".vimrc").exists();
     let vim2_contents = read_file(&dirs.local.join("_vimrc"));
+    let foo_contents = read_file(&dirs.local.join("foo"));
     assert_eq!(bash_exists, false);
     assert_eq!(git_contents, "git #1\r\n");
     assert_eq!(vim1_exists, false);
     assert_eq!(vim2_contents, "vim #2\r\n");
+    assert_eq!(foo_contents, "foo!\r\n");
 }
 
 #[test]
@@ -337,10 +367,11 @@ fn test_local_missing_file() {
 
     let expected_stdout = "\
 [1/3] Copy gitconfig to ~/.gitconfig
+[2/3] Copy foo to foo
 [2/3] Link bashrc to ~/.bashrc
 [2/3] Link vimrc to ~/.vimrc
 [2/3] Run sh script.sh arg1 linux
-script.sh called with arg1 linux
+foo!
 ";
     let expected_stderr = "  Error: No such file or directory (os error 2)\n";
     let (stdout, stderr, exitcode) = run_command(&mut cmd);
@@ -354,10 +385,12 @@ script.sh called with arg1 linux
     let bash_contents = read_file(&dirs.home.join(".bashrc"));
     let vim1_contents = read_file(&dirs.home.join(".vimrc"));
     let vim2_exists = dirs.home.join("_vimrc").exists();
+    let foo_contents = read_file(&dirs.local.join("foo"));
     let log_contents = read_file(&dirs.local.join("log.txt"));
     assert_eq!(bash_contents, "bash #2\n");
     assert_eq!(vim1_contents, "vim #2\n");
     assert_eq!(vim2_exists, false);
+    assert_eq!(foo_contents, "foo!\n");
     assert_eq!(log_contents, "script.sh called with arg1 linux\n");
 }
 
@@ -370,9 +403,10 @@ fn test_local_missing_file() {
 
     let expected_stdout = "\
 [1/3] Copy gitconfig to .gitconfig
+[3/3] Copy foo to foo
 [3/3] Link vimrc to _vimrc
 [3/3] Run  script.bat arg1 windows
-script.bat called with arg1 windows\r
+foo!\r
 ";
     let expected_stderr = "  Error: The system cannot find the file specified. \
                            (os error 2)\n";
@@ -385,8 +419,84 @@ script.bat called with arg1 windows\r
     write_file(&dirs.local.join("gitconfig"), "git #2\r\n");
     let bash_exists = dirs.local.join(".bashrc").exists();
     let git_contents = read_file(&dirs.local.join(".gitconfig"));
+    let foo_contents = read_file(&dirs.local.join("foo"));
     let log_contents = read_file(&dirs.local.join("log.txt"));
     assert_eq!(bash_exists, false);
     assert_eq!(git_contents, "git #1\r\n");
+    assert_eq!(foo_contents, "foo!\r\n");
+    assert_eq!(log_contents, "script.bat called with arg1 windows \r\n");
+}
+
+#[test]
+#[cfg(target_family = "unix")]
+fn test_local_relative_manifest() {
+    let (dirs, mut cmd) = setup_e2e_local("test_local_relative_manifest");
+    cmd.current_dir(&dirs.local.parent().unwrap());
+    cmd.args(["test_local_relative_manifest/manifest.yml", "-t", "linux"]);
+
+    let expected = "\
+[1/3] Copy gitconfig to ~/.gitconfig
+[2/3] Copy foo to foo
+[2/3] Link bashrc to ~/.bashrc
+[2/3] Link vimrc to ~/.vimrc
+[2/3] Run sh script.sh arg1 linux
+foo!
+";
+    let (stdout, stderr, exitcode) = run_command(&mut cmd);
+    assert_eq!(&stderr, "");
+    assert_eq!(&stdout, expected);
+    assert_eq!(exitcode, Some(0));
+
+    // Assert files are correctly copied/linked/run
+    write_file(&dirs.local.join("bashrc"), "bash #2\n");
+    write_file(&dirs.local.join("gitconfig"), "git #2\n");
+    write_file(&dirs.local.join("vimrc"), "vim #2\n");
+    let bash_contents = read_file(&dirs.home.join(".bashrc"));
+    let git_contents = read_file(&dirs.home.join(".gitconfig"));
+    let vim1_contents = read_file(&dirs.home.join(".vimrc"));
+    let vim2_exists = dirs.home.join("_vimrc").exists();
+    let foo_contents = read_file(&dirs.local.join("foo"));
+    let log_contents = read_file(&dirs.local.join("log.txt"));
+    assert_eq!(bash_contents, "bash #2\n");
+    assert_eq!(git_contents, "git #1\n");
+    assert_eq!(vim1_contents, "vim #2\n");
+    assert_eq!(vim2_exists, false);
+    assert_eq!(foo_contents, "foo!\n");
+    assert_eq!(log_contents, "script.sh called with arg1 linux\n");
+}
+
+#[test]
+#[cfg(target_family = "windows")]
+fn test_local_different_cwd() {
+    let (dirs, mut cmd) = setup_e2e_local("test_local_different_cwd");
+    cmd.current_dir(&dirs.local.parent().unwrap());
+    cmd.args(["test_local_different_cwd/manifest.yml", "-t", "windows"]);
+
+    let expected = "\
+[1/3] Copy gitconfig to .gitconfig
+[3/3] Copy foo to foo
+[3/3] Link vimrc to _vimrc
+[3/3] Run  script.bat arg1 windows
+foo!\r
+";
+    let (stdout, stderr, exitcode) = run_command(&mut cmd);
+    assert_eq!(&stderr, "");
+    assert_eq!(&stdout, expected);
+    assert_eq!(exitcode, Some(0));
+
+    // Assert files are correctly copied/linked/run
+    write_file(&dirs.local.join("gitconfig"), "git #2\r\n");
+    write_file(&dirs.local.join("vimrc"), "vim #2\r\n");
+    let bash_exists = dirs.local.join(".bashrc").exists();
+    let git_contents = read_file(&dirs.local.join(".gitconfig"));
+    let vim1_exists = dirs.local.join(".vimrc").exists();
+    let vim2_contents = read_file(&dirs.local.join("_vimrc"));
+    let foo_contents = read_file(&dirs.local.join("foo"));
+    let log_contents = read_file(&dirs.local.join("log.txt"));
+    assert_eq!(bash_exists, false);
+    assert_eq!(git_contents, "git #1\r\n");
+    assert_eq!(vim1_exists, false);
+    assert_eq!(vim2_contents, "vim #2\r\n");
+    assert_eq!(foo_contents, "foo!\r\n");
     assert_eq!(log_contents, "script.bat called with arg1 windows \r\n");
 }
