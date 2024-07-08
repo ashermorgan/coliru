@@ -5,6 +5,7 @@
 mod test_utils;
 
 use test_utils::*;
+use regex::Regex;
 use std::fs::remove_file;
 
 #[test]
@@ -281,4 +282,51 @@ foo!
     assert_eq!(vim2_exists, false);
     assert_eq!(foo_contents, "foo!\n");
     assert_eq!(log_contents, "script.sh called with arg1 linux\n");
+}
+
+#[test]
+fn test_ssh_bad_host() {
+    // Use setup_e2e_local instead of setup_e2e_ssh to avoid regular --host
+    let (_dirs, mut cmd) = setup_e2e_local("test_ssh_bad_host");
+    let bad_host = "fake@coliru.test.internal"; // Will be a DNS error
+    cmd.args(["manifest.yml", "-t", "linux", "--host", bad_host]);
+
+    // setup_e2e_local will install to CWD instead of $HOME on Windows:
+    let expected_stdout = Regex::new(&format!("\
+\\[1/3] Copy gitconfig to {bad_host}:~/(.coliru/)?.gitconfig
+\\[2/3] Copy foo to {bad_host}:~/.coliru/foo
+\\[2/3] Copy bashrc to {bad_host}:~/(.coliru/)?.bashrc
+\\[2/3] Copy vimrc to {bad_host}:~/(.coliru/)?.vimrc
+\\[2/3] Copy script.sh to {bad_host}:~/.coliru/script.sh
+\\[2/3] Run sh script.sh arg1 linux on {bad_host}
+")).unwrap();
+    // Exact std output varies significantly across machines;
+    let expected_stderr = Regex::new("\
+ssh: Could not resolve hostname coliru.test.internal: [\\w \\.]+\r?(
+[\\w :]+\r?)?
+  Error: Failed to transfer staged files: SCP terminated unsuccessfully: \
+    exit (status|code): \\d+
+ssh: Could not resolve hostname coliru.test.internal: [\\w \\.]+\r?(
+[\\w :]+\r?)?
+  Error: Failed to transfer staged files: SCP terminated unsuccessfully: \
+    exit (status|code): \\d+
+ssh: Could not resolve hostname coliru.test.internal: [\\w \\.]+\r?(
+[\\w :]+\r?)?
+  Error: Failed to transfer staged files: SCP terminated unsuccessfully: \
+    exit (status|code): \\d+
+ssh: Could not resolve hostname coliru.test.internal: [\\w \\.]+\r?(
+[\\w :]+\r?)?
+  Error: Failed to transfer staged files: SCP terminated unsuccessfully: \
+    exit (status|code): \\d+
+ssh: Could not resolve hostname coliru.test.internal: [\\w \\.]+\r?(
+[\\w :]+\r?)?
+  Error: Failed to transfer staged files: SCP terminated unsuccessfully: \
+    exit (status|code): \\d+
+ssh: Could not resolve hostname coliru.test.internal: [\\w \\.]+\r?
+  Error: SSH terminated unsuccessfully: exit (status|code): \\d+
+").unwrap();
+    let (stdout, stderr, exitcode) = run_command(&mut cmd);
+    assert_eq!(expected_stderr.is_match(&stderr), true);
+    assert_eq!(expected_stdout.is_match(&stdout), true);
+    assert_eq!(exitcode, Some(1));
 }

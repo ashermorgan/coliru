@@ -16,7 +16,7 @@ use std::env;
 use shellexpand::tilde_with_context;
 use std::fs::{read_dir, remove_dir_all};
 use std::path::{MAIN_SEPARATOR_STR, Path, PathBuf};
-use std::process::Command;
+use std::process::{Command, Stdio};
 use super::local::copy_file;
 
 /// Makes a relative path absolute according to a certain base directory
@@ -141,6 +141,7 @@ fn send_dir(src: &str, dst: &str, host: &str) -> Result<()> {
         })?.path();
 
         let mut cmd = Command::new("scp");
+        cmd.stdout(Stdio::null());
 
         if env::var("COLIRU_TEST").is_ok() {
             cmd.args(["-o", "StrictHostKeyChecking=no", "-P", "2222"]);
@@ -187,6 +188,7 @@ mod tests {
     use super::*;
     use crate::test_utils::{SSH_HOST, read_file, setup_integration, write_file};
 
+    use regex::Regex;
     use std::fs;
 
     #[test]
@@ -407,6 +409,24 @@ mod tests {
     }
 
     #[test]
+    fn test_send_dir_bad_host() {
+        let tmp = setup_integration("test_send_dir_bad_host");
+
+        write_file(&tmp.local.join("foo"), "contents of foo");
+        write_file(&tmp.local.join("bar"), "contents of bar");
+
+        let dst = "~/test_send_dir_bad_host";
+        let bad_host = "fake@coliru.test.internal"; // Will be a DNS error
+
+        let result = send_dir(tmp.local.to_str().unwrap(), dst, bad_host);
+        let expected = Regex::new("SCP terminated unsuccessfully: \
+                                   exit (status|code): \\d+").unwrap();
+
+        assert_eq!(result.is_ok(), false);
+        assert_eq!(expected.is_match(&result.unwrap_err().to_string()), true);
+    }
+
+    #[test]
     #[cfg(target_family = "unix")]
     fn test_send_command_basic() {
         let tmp = setup_integration("test_send_command_basic");
@@ -420,5 +440,20 @@ mod tests {
         assert_eq!(result.is_ok(), true);
         assert_eq!(dst_real.exists(), true);
         assert_eq!(read_file(&dst_real), "contents of foo\n");
+    }
+
+    #[test]
+    fn test_send_command_bad_host() {
+        let _tmp = setup_integration("test_send_command_bad_host");
+
+        let cmd = format!("echo Hello World");
+        let bad_host = "fake@coliru.test.internal"; // Will be a DNS error
+
+        let result = send_command(&cmd, bad_host);
+        let expected = Regex::new("SSH terminated unsuccessfully: \
+                                   exit (status|code): \\d+").unwrap();
+
+        assert_eq!(result.is_ok(), false);
+        assert_eq!(expected.is_match(&result.unwrap_err().to_string()), true);
     }
 }
