@@ -38,8 +38,8 @@ Some other helpful options include:
 - `--help`, `-h`: Print full help information
 - `--list-tags`, `-l`: List the tags in the manifest and quit without installing
 - `--dry-run`, `-n`: Do a trial run without any permanent changes
-- `--copy`: Interpret link commands as copy commands
 - `--host <HOST>`: Install dotfiles on another machine over SSH
+- `--copy`: Interpret link commands as copy commands
 
 ### Manifest File
 
@@ -50,9 +50,11 @@ to an array of tags. Each command is run from the directory containing the
 manifest file, or relative to the `~/coliru` directory when installing over SSH.
 
 - The **copy** command copies a dotfile (`src`) to a destination (`dst`).
+  Missing parent directories are created automatically.
 - The **link** command links a dotfile (`src`) to a destination (`dst`) using
-  symbolic links on Unix and hard links on Windows. Coliru will run copy
-  commands in place of link commands when installing over SSH.
+  symbolic links on Unix and hard links on Windows. Missing parent directories
+  are created automatically and coliru will run copy commands in place
+  of link commands when installing over SSH.
 - The **run** command executes a script (`src`) from the command line, using
   `sh` on Unix and `cmd` on Windows, with an optional `prefix` (e.g. `python3`)
   or `postfix` (e.g. `arg1 arg2 arg3`) string. Inside `postfix`, `$COLIRU_RULES`

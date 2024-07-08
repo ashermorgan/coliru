@@ -7,10 +7,10 @@
 # └── vimrc
 
 # For testing purposes, all files are given the .coliru suffix so they won't
-# overwrite existing dotfiles. The .vimrc file is linked to its destination so
-# that changes are synced with the dotfile repo. In contrast, the .gitconfig
-# file is only copied so that the name & email fields can be modified without
-# changing the version in the dotfile repo.
+# overwrite existing dotfiles. The .bashrc and .vimrc files are linked to their
+# destinations so that changes are synced with the dotfile repo. In contrast,
+# the .gitconfig file is copied so that the name & email fields can be modified
+# without changing the version in the dotfile repo.
 
 steps:
   - copy:

@@ -1,5 +1,5 @@
 # Note: copy_manifest() updates replaces ~/ and scripts/ with unique paths for
-# ssh e2e tests and Windows tests to ensure test dotfiles are isolated
+# Windows and ssh e2e tests to ensure test dotfiles are isolated
 
 steps:
   - copy:
@@ -8,8 +8,8 @@ steps:
     tags: [ windows, linux, macos ]
 
   - copy:
-    - src: scripts/foo # foo is a "run dependency" for script.sh
-      dst: scripts/foo
+    - src: scripts/foo
+      dst: scripts/foo # foo is a "run dependency" for script.sh
     link:
     - src: bashrc
       dst: ~/.bashrc
@@ -22,8 +22,8 @@ steps:
     tags: [ linux, macos ]
 
   - copy:
-    - src: scripts/foo # foo is a "run dependency" for script.bat
-      dst: scripts/foo
+    - src: scripts/foo
+      dst: scripts/foo # foo is a "run dependency" for script.sh
     link:
     - src: vimrc
       dst: ~/_vimrc
