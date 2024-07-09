@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.0.0 - 2024-07-08
+
+### Added
+
+- `--host` flag for installing dotfiles on remote machines over SSH
+- `--list-tags` flag for listing the tags in a manifest
+
+### Changed
+
+- Output is colorized to aid readability
+- The `run` command uses `cmd` instead of `powershell` on Windows
+- Improved documentation and `--help` output
+
+### Fixed
+
+- Prevent `copy` and `link` commands from overwriting dotfiles if the `src` and
+  `dst` paths are the same
+- Nonzero exit codes are now returned when an error occurs
+
 ## 0.2.0 - 2024-06-25
 
 ### Added
