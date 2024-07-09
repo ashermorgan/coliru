@@ -6,32 +6,31 @@
 # ├── manifest.yml
 # └── vimrc
 
-# For testing purposes, all files are given the .coliru suffix so they won't
-# overwrite existing dotfiles. The .bashrc and .vimrc files are linked to their
-# destinations so that changes are synced with the dotfile repo. In contrast,
-# the .gitconfig file is copied so that the name & email fields can be modified
-# without changing the version in the dotfile repo.
+# The .bashrc and .vimrc files are linked to their destinations so that changes
+# are synced with the dotfile repo. In contrast, the .gitconfig file is copied
+# so that the name & email fields can be modified without changing the version
+# in the dotfile repo.
 
 steps:
   - copy:
     - src: gitconfig
-      dst: ~/.gitconfig.coliru
+      dst: ~/.gitconfig
     tags: [ windows, linux, macos ]
 
   - link:
     - src: bashrc
-      dst: ~/.bashrc.coliru
+      dst: ~/.bashrc
     - src: vimrc
-      dst: ~/.vimrc.coliru # Will create symbolic links on Linux & MacOS
+      dst: ~/.vimrc # will create symbolic links on Linux & MacOS
     run:
     - src: script.sh
-      prefix: sh # unecessary on Unix if script.sh is executable
+      prefix: sh
       postfix: arg1 $COLIRU_RULES
     tags: [ linux, macos ]
 
   - link:
     - src: vimrc
-      dst: ~/_vimrc.coliru # Will create hard link on Windows
+      dst: ~/_vimrc # will create hard link on Windows
     run:
     - src: script.bat
       postfix: arg1 $COLIRU_RULES

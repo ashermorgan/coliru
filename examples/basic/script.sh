@@ -1,3 +1,3 @@
 #!/usr/bin/env sh
 
-echo "script.sh called with $@"
+echo This is script.sh, called on $(hostname) with args \"$@\"

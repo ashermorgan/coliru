@@ -1,2 +1,2 @@
 @ECHO OFF
-ECHO script.bat called with %*
+ECHO This is script.bat, called on %COMPUTERNAME% with args ^"%*^"
