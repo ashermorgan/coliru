@@ -83,7 +83,9 @@ fn run_args(args: Args) -> Result<bool> {
     }
 
     let manifest = parse_manifest_file(Path::new(&args.manifest))
-        .context("Failed to parse manifest")?;
+        .with_context(|| {
+            format!("Failed to parse {}", args.manifest)
+        })?;
 
     if args.list_tags {
         list_tags(manifest);
