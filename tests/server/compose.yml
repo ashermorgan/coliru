@@ -5,7 +5,7 @@ services:
     build:
       context: .
     ports:
-      - 2222:22
+      - 127.0.0.1:2222:22
     volumes:
       - type: bind
         source: ../.temp/ssh
