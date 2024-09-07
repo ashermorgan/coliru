@@ -115,11 +115,11 @@ fn test_basic_absolute_manifest() {
     cmd.args([&manifest_path.to_str().unwrap(), "--dry-run", "-t", "linux"]);
 
     let expected = "\
-[1/3] Copy gitconfig to ~/.gitconfig (DRY RUN)
-[2/3] Copy foo to foo (DRY RUN)
-[2/3] Link bashrc to ~/.bashrc (DRY RUN)
-[2/3] Link vimrc to ~/.vimrc (DRY RUN)
-[2/3] Run sh script.sh arg1 linux (DRY RUN)
+[1/2] Copy gitconfig to ~/.gitconfig (DRY RUN)
+[2/2] Copy foo to foo (DRY RUN)
+[2/2] Link bashrc to ~/.bashrc (DRY RUN)
+[2/2] Link vimrc to ~/.vimrc (DRY RUN)
+[2/2] Run sh script.sh arg1 linux (DRY RUN)
 ";
     let (stdout, stderr, exitcode) = run_command(&mut cmd);
     assert_eq!(&stderr, "");
@@ -149,11 +149,11 @@ fn test_basic_absolute_manifest() {
     cmd.args([&manifest_path.to_str().unwrap(), "--dry-run", "-t", "linux"]);
 
     let expected = "\
-[1/3] Copy gitconfig to .gitconfig (DRY RUN)
-[2/3] Copy foo to foo (DRY RUN)
-[2/3] Link bashrc to .bashrc (DRY RUN)
-[2/3] Link vimrc to .vimrc (DRY RUN)
-[2/3] Run sh script.sh arg1 linux (DRY RUN)
+[1/2] Copy gitconfig to .gitconfig (DRY RUN)
+[2/2] Copy foo to foo (DRY RUN)
+[2/2] Link bashrc to .bashrc (DRY RUN)
+[2/2] Link vimrc to .vimrc (DRY RUN)
+[2/2] Run sh script.sh arg1 linux (DRY RUN)
 ";
     let (stdout, stderr, exitcode) = run_command(&mut cmd);
     assert_eq!(&stderr, "");

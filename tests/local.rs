@@ -12,11 +12,11 @@ fn test_local_standard() {
     cmd.args(["manifest.yml", "-t", "linux"]);
 
     let expected = "\
-[1/3] Copy gitconfig to ~/.gitconfig
-[2/3] Copy foo to foo
-[2/3] Link bashrc to ~/.bashrc
-[2/3] Link vimrc to ~/.vimrc
-[2/3] Run sh script.sh arg1 linux
+[1/2] Copy gitconfig to ~/.gitconfig
+[2/2] Copy foo to foo
+[2/2] Link bashrc to ~/.bashrc
+[2/2] Link vimrc to ~/.vimrc
+[2/2] Run sh script.sh arg1 linux
 foo!
 ";
     let (stdout, stderr, exitcode) = run_command(&mut cmd);
@@ -49,10 +49,10 @@ fn test_local_standard() {
     cmd.args(["manifest.yml", "-t", "windows"]);
 
     let expected = "\
-[1/3] Copy gitconfig to .gitconfig
-[3/3] Copy foo to foo
-[3/3] Link vimrc to _vimrc
-[3/3] Run  script.bat arg1 windows
+[1/2] Copy gitconfig to .gitconfig
+[2/2] Copy foo to foo
+[2/2] Link vimrc to _vimrc
+[2/2] Run  script.bat arg1 windows
 foo!\r
 ";
     let (stdout, stderr, exitcode) = run_command(&mut cmd);
@@ -84,10 +84,10 @@ fn test_local_run_alternate_tag_rules_1() {
     cmd.args(["manifest.yml", "-t", "linux", "^windows"]);
 
     let expected = "\
-[2/3] Copy foo to foo
-[2/3] Link bashrc to ~/.bashrc
-[2/3] Link vimrc to ~/.vimrc
-[2/3] Run sh script.sh arg1 linux ^windows
+[1/1] Copy foo to foo
+[1/1] Link bashrc to ~/.bashrc
+[1/1] Link vimrc to ~/.vimrc
+[1/1] Run sh script.sh arg1 linux ^windows
 foo!
 ";
     let (stdout, stderr, exitcode) = run_command(&mut cmd);
@@ -119,11 +119,11 @@ fn test_local_run_alternate_tag_rules_2() {
     cmd.args(["manifest.yml", "-t", "macos"]);
 
     let expected = "\
-[1/3] Copy gitconfig to ~/.gitconfig
-[2/3] Copy foo to foo
-[2/3] Link bashrc to ~/.bashrc
-[2/3] Link vimrc to ~/.vimrc
-[2/3] Run sh script.sh arg1 macos
+[1/2] Copy gitconfig to ~/.gitconfig
+[2/2] Copy foo to foo
+[2/2] Link bashrc to ~/.bashrc
+[2/2] Link vimrc to ~/.vimrc
+[2/2] Run sh script.sh arg1 macos
 foo!
 ";
     let (stdout, stderr, exitcode) = run_command(&mut cmd);
@@ -156,11 +156,11 @@ fn test_local_dry_run() {
     cmd.args(["manifest.yml", "--dry-run", "-t", "linux"]);
 
     let expected = "\
-[1/3] Copy gitconfig to ~/.gitconfig (DRY RUN)
-[2/3] Copy foo to foo (DRY RUN)
-[2/3] Link bashrc to ~/.bashrc (DRY RUN)
-[2/3] Link vimrc to ~/.vimrc (DRY RUN)
-[2/3] Run sh script.sh arg1 linux (DRY RUN)
+[1/2] Copy gitconfig to ~/.gitconfig (DRY RUN)
+[2/2] Copy foo to foo (DRY RUN)
+[2/2] Link bashrc to ~/.bashrc (DRY RUN)
+[2/2] Link vimrc to ~/.vimrc (DRY RUN)
+[2/2] Run sh script.sh arg1 linux (DRY RUN)
 ";
     let (stdout, stderr, exitcode) = run_command(&mut cmd);
     assert_eq!(&stderr, "");
@@ -189,10 +189,10 @@ fn test_local_dry_run() {
     cmd.args(["manifest.yml", "--dry-run", "-t", "windows"]);
 
     let expected = "\
-[1/3] Copy gitconfig to .gitconfig (DRY RUN)
-[3/3] Copy foo to foo (DRY RUN)
-[3/3] Link vimrc to _vimrc (DRY RUN)
-[3/3] Run  script.bat arg1 windows (DRY RUN)
+[1/2] Copy gitconfig to .gitconfig (DRY RUN)
+[2/2] Copy foo to foo (DRY RUN)
+[2/2] Link vimrc to _vimrc (DRY RUN)
+[2/2] Run  script.bat arg1 windows (DRY RUN)
 ";
     let (stdout, stderr, exitcode) = run_command(&mut cmd);
     assert_eq!(&stderr, "");
@@ -221,11 +221,11 @@ fn test_local_copy() {
     cmd.args(["manifest.yml", "--copy", "-t", "linux"]);
 
     let expected = "\
-[1/3] Copy gitconfig to ~/.gitconfig
-[2/3] Copy foo to foo
-[2/3] Copy bashrc to ~/.bashrc
-[2/3] Copy vimrc to ~/.vimrc
-[2/3] Run sh script.sh arg1 linux
+[1/2] Copy gitconfig to ~/.gitconfig
+[2/2] Copy foo to foo
+[2/2] Copy bashrc to ~/.bashrc
+[2/2] Copy vimrc to ~/.vimrc
+[2/2] Run sh script.sh arg1 linux
 foo!
 ";
     let (stdout, stderr, exitcode) = run_command(&mut cmd);
@@ -258,10 +258,10 @@ fn test_local_copy() {
     cmd.args(["manifest.yml", "--copy", "-t", "windows"]);
 
     let expected = "\
-[1/3] Copy gitconfig to .gitconfig
-[3/3] Copy foo to foo
-[3/3] Copy vimrc to _vimrc
-[3/3] Run  script.bat arg1 windows
+[1/2] Copy gitconfig to .gitconfig
+[2/2] Copy foo to foo
+[2/2] Copy vimrc to _vimrc
+[2/2] Run  script.bat arg1 windows
 foo!\r
 ";
     let (stdout, stderr, exitcode) = run_command(&mut cmd);
@@ -294,11 +294,11 @@ fn test_local_run_failure() {
     write_file(&dirs.local.join("script.sh"), "exit 1");
 
     let expected_stdout = "\
-[1/3] Copy gitconfig to ~/.gitconfig
-[2/3] Copy foo to foo
-[2/3] Link bashrc to ~/.bashrc
-[2/3] Link vimrc to ~/.vimrc
-[2/3] Run sh script.sh arg1 linux
+[1/2] Copy gitconfig to ~/.gitconfig
+[2/2] Copy foo to foo
+[2/2] Link bashrc to ~/.bashrc
+[2/2] Link vimrc to ~/.vimrc
+[2/2] Run sh script.sh arg1 linux
 ";
     let expected_stderr = "  Error: Process terminated unsuccessfully: \
                            exit status: 1\n";
@@ -331,10 +331,10 @@ fn test_local_run_failure() {
     write_file(&dirs.local.join("script.bat"), "@echo off\r\nexit 1");
 
     let expected_stdout = "\
-[1/3] Copy gitconfig to .gitconfig
-[3/3] Copy foo to foo
-[3/3] Link vimrc to _vimrc
-[3/3] Run  script.bat arg1 windows
+[1/2] Copy gitconfig to .gitconfig
+[2/2] Copy foo to foo
+[2/2] Link vimrc to _vimrc
+[2/2] Run  script.bat arg1 windows
 ";
     let expected_stderr = "  Error: Process terminated unsuccessfully: \
                            exit code: 1\n";
@@ -366,11 +366,11 @@ fn test_local_missing_file() {
     remove_file(&dirs.local.join("gitconfig")).unwrap();
 
     let expected_stdout = "\
-[1/3] Copy gitconfig to ~/.gitconfig
-[2/3] Copy foo to foo
-[2/3] Link bashrc to ~/.bashrc
-[2/3] Link vimrc to ~/.vimrc
-[2/3] Run sh script.sh arg1 linux
+[1/2] Copy gitconfig to ~/.gitconfig
+[2/2] Copy foo to foo
+[2/2] Link bashrc to ~/.bashrc
+[2/2] Link vimrc to ~/.vimrc
+[2/2] Run sh script.sh arg1 linux
 foo!
 ";
     let expected_stderr = "  Error: No such file or directory (os error 2)\n";
@@ -402,10 +402,10 @@ fn test_local_missing_file() {
     remove_file(&dirs.local.join("vimrc")).unwrap();
 
     let expected_stdout = "\
-[1/3] Copy gitconfig to .gitconfig
-[3/3] Copy foo to foo
-[3/3] Link vimrc to _vimrc
-[3/3] Run  script.bat arg1 windows
+[1/2] Copy gitconfig to .gitconfig
+[2/2] Copy foo to foo
+[2/2] Link vimrc to _vimrc
+[2/2] Run  script.bat arg1 windows
 foo!\r
 ";
     let expected_stderr = "  Error: The system cannot find the file specified. \
@@ -435,11 +435,11 @@ fn test_local_relative_manifest() {
     cmd.args(["test_local_relative_manifest/manifest.yml", "-t", "linux"]);
 
     let expected = "\
-[1/3] Copy gitconfig to ~/.gitconfig
-[2/3] Copy foo to foo
-[2/3] Link bashrc to ~/.bashrc
-[2/3] Link vimrc to ~/.vimrc
-[2/3] Run sh script.sh arg1 linux
+[1/2] Copy gitconfig to ~/.gitconfig
+[2/2] Copy foo to foo
+[2/2] Link bashrc to ~/.bashrc
+[2/2] Link vimrc to ~/.vimrc
+[2/2] Run sh script.sh arg1 linux
 foo!
 ";
     let (stdout, stderr, exitcode) = run_command(&mut cmd);
@@ -473,10 +473,10 @@ fn test_local_different_cwd() {
     cmd.args(["test_local_different_cwd/manifest.yml", "-t", "windows"]);
 
     let expected = "\
-[1/3] Copy gitconfig to .gitconfig
-[3/3] Copy foo to foo
-[3/3] Link vimrc to _vimrc
-[3/3] Run  script.bat arg1 windows
+[1/2] Copy gitconfig to .gitconfig
+[2/2] Copy foo to foo
+[2/2] Link vimrc to _vimrc
+[2/2] Run  script.bat arg1 windows
 foo!\r
 ";
     let (stdout, stderr, exitcode) = run_command(&mut cmd);

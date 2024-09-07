@@ -5,7 +5,7 @@ use colored::{Colorize, ColoredString};
 use std::env::set_current_dir;
 use std::path::Path;
 use super::manifest::{Manifest, CopyLinkOptions, RunOptions, get_manifest_tags,
-    tags_match};
+    filter_manifest_steps};
 use super::local::{copy_file, link_file, run_command};
 use super::ssh::{resolve_path, send_command, send_staged_files, stage_file};
 use tempfile::tempdir;
@@ -51,16 +51,17 @@ pub fn list_tags(manifest: Manifest) {
 pub fn install_manifest(manifest: Manifest, tag_rules: Vec<String>, host: &str,
                         dry_run: bool, copy: bool) -> Result<bool> {
 
+    let filtered_manifest = filter_manifest_steps(manifest, &tag_rules);
+
     let temp_dir = tempdir().context("Failed to create temporary directory")?;
-    set_current_dir(manifest.base_dir)
+    set_current_dir(filtered_manifest.base_dir)
         .context("Failed to set working directory")?;
 
     let mut errors = false;
 
-    for (i, step) in manifest.steps.iter().enumerate() {
-        if !tags_match(&tag_rules, &step.tags) { continue; }
-
-        let step_str = format!("[{}/{}]", i+1, manifest.steps.len()).bold();
+    for (i, step) in filtered_manifest.steps.iter().enumerate() {
+        let step_str = format!("[{}/{}]", i+1,
+            filtered_manifest.steps.len()).bold();
 
         errors |= execute_copies(&step.copy, host, temp_dir.path(), dry_run,
                                  &step_str);

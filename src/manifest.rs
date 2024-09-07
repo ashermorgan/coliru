@@ -8,7 +8,7 @@ use std::fs::read_to_string;
 use std::path::{Path, PathBuf};
 
 /// The options for a copy or link command
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize)]
 pub struct CopyLinkOptions {
     /// The source file (relative to the parent manifest file)
     pub src: String,
@@ -18,7 +18,7 @@ pub struct CopyLinkOptions {
 }
 
 /// The options for a run command
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize)]
 pub struct RunOptions {
     /// The location of the script (relative to the parent manifest file)
     pub src: String,
@@ -33,7 +33,7 @@ pub struct RunOptions {
 }
 
 /// A manifest step
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize)]
 pub struct Step {
     /// The step's copy commands
     #[serde(default)]
@@ -61,7 +61,7 @@ struct RawManifest {
 }
 
 /// A parsed coliru manifest
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Manifest {
     /// The manifest steps
     pub steps: Vec<Step>,
@@ -79,7 +79,7 @@ pub struct Manifest {
 /// assert_eq!(tags_match(&rules, &tags_1), true);
 /// assert_eq!(tags_match(&rules, &tags_2), false);
 /// ```
-pub fn tags_match<S: AsRef<str>>(rules: &[S], tags: &[S]) -> bool {
+fn tags_match<S: AsRef<str>>(rules: &[S], tags: &[S]) -> bool {
     for rule in rules.iter() {
         let mut _rule = rule.as_ref();
         let is_negated = _rule.chars().nth(0) == Some('^');
@@ -121,6 +121,11 @@ pub fn parse_manifest_file(path: &Path) -> Result<Manifest> {
 }
 
 /// Returns a sorted, de-duplicated vector of all tags in a manifest
+///
+/// ```
+/// let manifest = parse_manifest_file(Path::new("manifest.yml"))?;
+/// let tags = get_manifest_tags(manifest);
+/// ```
 pub fn get_manifest_tags(manifest: Manifest) -> Vec<String> {
     let mut tag_set: HashSet<String> = HashSet::new();
 
@@ -133,6 +138,26 @@ pub fn get_manifest_tags(manifest: Manifest) -> Vec<String> {
     let mut tags: Vec<String> = tag_set.iter().map(|s| s.to_owned()).collect();
     tags.sort();
     tags
+}
+
+/// Filter a manifest to only include steps that satisfy a set of tag rules
+///
+/// ```
+/// let manifest = parse_manifest_file(Path::new("manifest.yml"))?;
+/// let tag_rules = [String::from("linux"), String::from("^windows")];
+/// let filtered_manifest = filter_manifest_steps(manifest, &tag_rules);
+/// let filtered_tags = get_manifest_tags(filtered_manifest);
+/// assert_eq!(filtered_tags.contains(String::from("windows")), false);
+/// ```
+pub fn filter_manifest_steps(manifest: Manifest, tag_rules: &[String]) ->
+    Manifest {
+
+    Manifest {
+        steps: manifest.steps.iter().filter(|x|
+            tags_match(tag_rules, &x.tags)
+        ).map(|x| x.clone()).collect(),
+        base_dir: manifest.base_dir,
+    }
 }
 
 #[cfg(test)]
@@ -389,13 +414,70 @@ mod tests {
     }
 
     #[test]
-    fn test_manifest_get_manifest_tags_empty() {
+    fn test_manifest_get_manifest_tags_empty_manifest() {
         let manifest = Manifest {
             steps: vec![],
             base_dir: PathBuf::from("examples/test/empty.yml"),
         };
         let expected: Vec<String> = vec![];
         let actual = get_manifest_tags(manifest);
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn test_manifest_get_manifest_tags_no_tags() {
+        let manifest_path = Path::new("examples/test/manifest.yml");
+        let mut manifest = parse_manifest_file(manifest_path).unwrap();
+        manifest.steps[0].tags = vec![];
+        manifest.steps[1].tags = vec![];
+        manifest.steps[2].tags = vec![];
+        let expected: Vec<String> = vec![];
+        let actual = get_manifest_tags(manifest);
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn test_manifest_filter_manifest_steps_basic() {
+        let manifest_path = Path::new("examples/test/manifest.yml");
+        let manifest = parse_manifest_file(manifest_path).unwrap();
+        let tags = [String::from("linux")];
+        let mut expected = manifest.clone();
+        expected.steps.remove(2);
+        let actual = filter_manifest_steps(manifest, &tags);
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn test_manifest_filter_manifest_steps_alternate_tags() {
+        let manifest_path = Path::new("examples/test/manifest.yml");
+        let manifest = parse_manifest_file(manifest_path).unwrap();
+        let tags = [String::from("linux"), String::from("^windows")];
+        let mut expected = manifest.clone();
+        expected.steps.remove(0);
+        expected.steps.remove(1);
+        let actual = filter_manifest_steps(manifest, &tags);
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn test_manifest_filter_manifest_steps_empty_manifest() {
+        let manifest = Manifest {
+            steps: vec![],
+            base_dir: PathBuf::from("examples/test/empty.yml"),
+        };
+        let tags = [String::from("linux")];
+        let expected = manifest.clone();
+        let actual = filter_manifest_steps(manifest, &tags);
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn test_manifest_filter_manifest_steps_no_tags() {
+        let manifest_path = Path::new("examples/test/manifest.yml");
+        let manifest = parse_manifest_file(manifest_path).unwrap();
+        let tags = [];
+        let expected = manifest.clone();
+        let actual = filter_manifest_steps(manifest, &tags);
         assert_eq!(actual, expected);
     }
 }
