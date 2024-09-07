@@ -5,7 +5,6 @@ mod core;
 mod local;
 mod manifest;
 mod ssh;
-mod tags;
 
 #[cfg(test)]
 #[path = "../tests/test_utils/mod.rs"]

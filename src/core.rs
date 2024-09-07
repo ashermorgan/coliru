@@ -4,8 +4,8 @@ use anyhow::{Context, Result};
 use colored::{Colorize, ColoredString};
 use std::env::set_current_dir;
 use std::path::Path;
-use super::manifest::{Manifest, CopyLinkOptions, RunOptions, get_tags};
-use super::tags::tags_match;
+use super::manifest::{Manifest, CopyLinkOptions, RunOptions, get_manifest_tags,
+    tags_match};
 use super::local::{copy_file, link_file, run_command};
 use super::ssh::{resolve_path, send_command, send_staged_files, stage_file};
 use tempfile::tempdir;
@@ -39,7 +39,7 @@ fn handle_error(result: Result<()>) -> bool {
 
 /// Prints the available tags in a manifest
 pub fn list_tags(manifest: Manifest) {
-    for tag in get_tags(manifest) {
+    for tag in get_manifest_tags(manifest) {
         println!("{}", tag);
     }
 }
