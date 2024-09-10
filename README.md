@@ -80,7 +80,7 @@ steps:
     - src: vimrc
       dst: ~/.vimrc # Will create symbolic links on Linux & MacOS
     run:
-    - src: script.sh
+    - src: ./script.sh
       prefix: sh # unecessary on Unix if script.sh is executable
       postfix: arg1 $COLIRU_RULES
     tags: [ linux, macos ]
