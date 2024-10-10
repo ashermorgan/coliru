@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.0 - 2024-10-10
+
+### Changed
+
+- Update progress indicators to reflect tag rule filtering
+- Improved context in error messages
+
 ## 1.0.0 - 2024-07-09
 
 ### Added
