@@ -6,6 +6,8 @@ A minimal, flexible, dotfile installer
 
 ## Features
 
+With coliru you can:
+
 - Install dotfiles as copies and/or symlinks
 - Manage differences between machines using tags
 - Run custom scripts
@@ -48,8 +50,9 @@ Some other helpful options include:
 Manifests are defined using YAML as an array of steps that are executed to
 install the dotfiles, which are located in the same directory as the manifest.
 Each step may contain an array of copy, link, and/or run commands, in addition
-to an array of tags. Each command is run from the directory containing the
-manifest file, or relative to the `~/coliru` directory when installing over SSH.
+to an array of tags (see below). Each command is run from the directory
+containing the manifest file, or relative to the `~/.coliru` directory when
+installing over SSH.
 
 - The **copy** command copies a dotfile (`src`) to a destination (`dst`).
   Missing parent directories are created automatically.
@@ -64,8 +67,8 @@ manifest file, or relative to the `~/coliru` directory when installing over SSH.
   installing over SSH, scripts are copied to the `~/.coliru` directory on the
   remote machine before they are executed.
 
-Example YAML manifest (see
-[`examples/basic/`](examples/basic/) for a complete example dotfile repository):
+Example YAML manifest (see `examples/basic/` for a complete example dotfile
+repository):
 
 ```yml
 steps:
@@ -97,9 +100,10 @@ steps:
 ### Tags and Tag Rules
 
 Tags enable the installation of a subset of manifest steps based on a set of tag
-rules. Common tags include supported operating systems (e.g. `linux`, `macos`,
-and/or `windows`), types of machines (e.g. `work`, `personal`, `server`, etc),
-and whether the step requires elevated privileges (e.g. `system` vs `user`).
+rules. Tags are user-defined and may be used to specify a step's supported
+operating systems (e.g. `linux`, `macos`, and/or `windows`), privilege
+requirements (e.g. `system` vs `user`), or even the types of machines it applies
+to (e.g. `personal`, `work`, `server`, etc).
 
 Tag rules are specified on the command line using the `--tag-rules` option. In
 order for the commands in a step to be executed, its tags must satisfy all of
