@@ -21,7 +21,7 @@ Coliru binaries can be downloaded from the
 Coliru can also be installed from source using Cargo:
 
 ```
-cargo install --git https://github.com/ashermorgan/coliru
+CARGO_NET_GIT_FETCH_WITH_CLI=true cargo install --git https://git.ashermorgan.net/coliru/
 
 # To uninstall:
 # cargo uninstall coliru
