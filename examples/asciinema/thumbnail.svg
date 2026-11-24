@@ -1,0 +1,100 @@
+<?xml version="1.0"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="774.94666636" height="466.66655000000003" font-family="'Cascadia Code','Source Code Pro',Menlo,Consolas,'DejaVu Sans Mono',monospace,'Symbols Nerd Font'" font-size="14px" style="">
+  <style>
+    .br { font-weight: bold }
+    .fa { fill-opacity: 0.5 }
+    .it { font-style: italic }
+    .un { text-decoration: underline }
+    .term-text tspan tspan { white-space: pre }
+
+    @font-face {
+      font-family: "Symbols Nerd Font";
+      src: url("https://asciinema.org/fonts/SymbolsNerdFont-Regular-337b40fc23735cb78fbe3379fae18138.woff2?vsn=d") format("woff2");
+    }
+
+  </style>
+
+  <defs>
+    <clipPath id="terminal-background-90-24-4-4">
+      <rect width="774.94666636" height="466.66655000000003" rx="4" ry="4"></rect>
+    </clipPath>
+  </defs>
+  <image x="0" y="0" width="774.94666636" height="466.66655000000003" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAuAAAAJYCAIAAACsJcRGAAAKpElEQVR4Xu3WsQ0CQQADQb4MJCLquXK/QBr4GK3kmdCZs73en+8LAKDkEigAQI1AAQByBAoAkCNQAIAcgQIA5AgUACBHoAAAOQIFAMgRKABAjkABAHIECgCQI1AAgByBAgDkCBQAIEegAAA5AgUAyBEoAECOQAEAcgQKAJAjUACAHIECAOQIFAAgR6AAADkCBQDIESgAQI5AAQByBAoAkCNQAIAcgQIA5AgUACBHoAAAOQIFAMgRKABAjkABAHIECgCQI1AAgByBAgDkCBQAIEegAAA5AgUAyBEoAECOQAEAcgQKAJAjUACAHIECAOQIFAAgR6AAADkCBQDIESgAQI5AAQByBAoAkCNQAIAcgQIA5AgUACBHoAAAOQIFAMgRKABAjkABAHIECgCQI1AAgByBAgDkCBQAIEegAAA5AgUAyBEoAECOQAEAcgQKAJAjUACAHIECAOQIFAAgR6AAADkCBQDIESgAQI5AAQByBAoAkCNQAIAcgQIA5AgUACBHoAAAOQIFAMgRKABAjkABAHIECgCQI1AAgByBAgDkCBQAIEegAAA5AgUAyBEoAECOQAEAcgQKAJAjUACAHIECAOQIFAAgR6AAADkCBQDIESgAQI5AAQByBAoAkCNQAIAcgQIA5AgUACBHoAAAOQIFAMgRKABAjkABAHIECgCQI1AAgByBAgDkCBQAIEegAAA5AgUAyBEoAECOQAEAcgQKAJAjUACAHIECAOQIFAAgR6AAADkCBQDIESgAQI5AAQByBAoAkCNQAIAcgQIA5AgUACBHoAAAOQIFAMgRKABAjkABAHIECgCQI1AAgByBAgDkCBQAIEegAAA5AgUAyBEoAECOQAEAcgQKAJAjUACAHIECAOQIFAAgR6AAADkCBQDIESgAQI5AAQByBAoAkCNQAIAcgQIA5AgUACBHoAAAOQIFAMgRKABAjkABAHIECgCQI1AAgByBAgDkCBQAIEegAAA5AgUAyBEoAECOQAEAcgQKAJAjUACAHIECAOQIFAAgR6AAADkCBQDIESgAQI5AAQByBAoAkCNQAIAcgQIA5AgUACBHoAAAOQIFAMgRKABAjkABAHIECgCQI1AAgByBAgDkCBQAIEegAAA5AgUAyBEoAECOQAEAcgQKAJAjUACAHIECAOQIFAAgR6AAADkCBQDIESgAQI5AAQByBAoAkCNQAIAcgQIA5AgUACBHoAAAOQIFAMgRKABAjkABAHIECgCQI1AAgByBAgDkCBQAIEegAAA5AgUAyBEoAECOQAEAcgQKAJAjUACAHIECAOQIFAAgR6AAADkCBQDIESgAQI5AAQByBAoAkCNQAIAcgQIA5AgUACBHoAAAOQIFAMgRKABAjkABAHIECgCQI1AAgByBAgDkCBQAIEegAAA5AgUAyBEoAECOQAEAcgQKAJAjUACAHIECAOQIFAAgR6AAADkCBQDIESgAQI5AAQByBAoAkCNQAIAcgQIA5AgUACBHoAAAOQIFAMgRKABAjkABAHIECgCQI1AAgByBAgDkCBQAIEegAAA5AgUAyBEoAECOQAEAcgQKAJAjUACAHIECAOQIFAAgR6AAADkCBQDIESgAQI5AAQByBAoAkCNQAIAcgQIA5AgUACBHoAAAOQIFAMgRKABAjkABAHIECgCQI1AAgByBAgDkCBQAIEegAAA5AgUAyBEoAECOQAEAcgQKAJAjUACAHIECAOQIFAAgR6AAADkCBQDIESgAQI5AAQByBAoAkCNQAIAcgQIA5AgUACBHoAAAOQIFAMgRKABAjkABAHIECgCQI1AAgByBAgDkCBQAIEegAAA5AgUAyBEoAECOQAEAcgQKAJAjUACAHIECAOQIFAAgR6AAADkCBQDIESgAQI5AAQByBAoAkCNQAIAcgQIA5AgUACBHoAAAOQIFAMgRKABAjkABAHIECgCQI1AAgByBAgDkCBQAIEegAAA5AgUAyBEoAECOQAEAcgQKAJAjUACAHIECAOQIFAAgR6AAADkCBQDIESgAQI5AAQByBAoAkCNQAIAcgQIA5AgUACBHoAAAOQIFAMgRKABAjkABAHIECgCQI1AAgByBAgDkCBQAIEegAAA5AgUAyBEoAECOQAEAcgQKAJAjUACAHIECAOQIFAAgR6AAADkCBQDIESgAQI5AAQByBAoAkCNQAIAcgQIA5AgUACBHoAAAOQIFAMgRKABAjkABAHIECgCQI1AAgByBAgDkCBQAIEegAAA5AgUAyBEoAECOQAEAcgQKAJAjUACAHIECAOQIFAAgR6AAADkCBQDIESgAQI5AAQByBAoAkCNQAIAcgQIA5AgUACBHoAAAOQIFAMgRKABAjkABAHIECgCQI1AAgByBAgDkCBQAIEegAAA5AgUAyBEoAECOQAEAcgQKAJAjUACAHIECAOQIFAAgR6AAADkCBQDIESgAQI5AAQByBAoAkCNQAIAcgQIA5AgUACBHoAAAOQIFAMgRKABAjkABAHIECgCQI1AAgByBAgDkCBQAIEegAAA5AgUAyBEoAECOQAEAcgQKAJAjUACAHIECAOQIFAAgR6AAADkCBQDIESgAQI5AAQByBAoAkCNQAIAcgQIA5AgUACBHoAAAOQIFAMgRKABAjkABAHIECgCQI1AAgByBAgDkCBQAIEegAAA5AgUAyBEoAECOQAEAcgQKAJAjUACAHIECAOQIFAAgR6AAADkCBQDIESgAQI5AAQByBAoAkCNQAIAcgQIA5AgUACBHoAAAOQIFAMgRKABAjkABAHIECgCQI1AAgByBAgDkCBQAIEegAAA5AgUAyBEoAECOQAEAcgQKAJAjUACAHIECAOQIFAAgR6AAADkCBQDIESgAQI5AAQByBAoAkCNQAIAcgQIA5AgUACBHoAAAOQIFAMgRKABAjkABAHIECgCQI1BG3ff9+Pyc87gDwD8JlFECBYAygTJKoABQJlBGCRQAygTKKIECQJlAGSVQACgTKKMECgBlAmWUQAGgTKCMEigAlAmUUQIFgDKBMkqgAFAmUEYJFADKBMoogQJAmUAZJVAAKBMoowQKAGUCZZRAAaBMoIwSKACUCZRRAgWAMoEySqAAUCZQRgkUAMoEyiiBAkCZQBklUAAoEyijBAoAZQJllEABoEygAAA5AgUAyBEoAECOQAEAcgQKAJAjUACAHIECAOQIFAAgR6AAADkCBQDIESgAQI5AAQByBAoAkCNQAIAcgQIA5AgUACBHoAAAOQIFAMgRKABAjkABAHIECgCQI1AAgByBAgDkCBQAIEegAAA5AgUAyBEoAECOQAEAcgQKAJAjUACAHIECAOQIFAAgR6AAADkCBQDIESgAQI5AAQByBAoAkCNQAIAcgQIA5AgUACBHoAAAOQIFAMgRKABAjkABAHIECgCQI1AAgByBAgDkCBQAIEegAAA5AgUAyBEoAECOQAEAcgQKAJAjUACAHIECAOQIFAAgR6AAADkCBQDIESgAQI5AAQByBAoAkCNQAIAcgQIA5AgUACBHoAAAOQIFAMgRKABAjkABAHIECgCQI1AAgByBAgDkCBQAIEegAAA5AgUAyBEoAECOQAEAcgQKAJAjUACAHIECAOQIFAAgR6AAADkCBQDIESgAQI5AAQByfm8xFlCHCHnrAAAAAElFTkSuQmCC" preserveAspectRatio="none" clip-path="url(#terminal-background-90-24-4-4)" style="image-rendering: pixelated; image-rendering: crisp-edges;"></image>
+
+  <g style="">
+
+    
+    <svg x="8.42333333" y="9.333331000000001" class="default-text-fill">
+
+      <text xml:space="preserve" class="term-text" style="fill: #cdd0d6">
+        <tspan y="0.0">
+          <tspan dy="1em" x="0.0" class="br" style="fill: #64bc69">me@laptop</tspan><tspan x="75.80999997">:</tspan><tspan x="84.2333333" class="br" style="fill: #68a2ec">~/coliru</tspan><tspan x="151.61999994">$ # List tags in manifest file:                                         </tspan>
+        </tspan><tspan y="18.666662000000002">
+          <tspan dy="1em" x="0.0" class="br" style="fill: #64bc69">me@laptop</tspan><tspan x="75.80999997">:</tspan><tspan x="84.2333333" class="br" style="fill: #68a2ec">~/coliru</tspan><tspan x="151.61999994">$ coliru examples/basic/manifest.yml --list-tags                        </tspan>
+        </tspan><tspan y="37.333324000000005">
+          <tspan dy="1em" x="0.0">linux                                                                                     </tspan>
+        </tspan><tspan y="55.99998600000001">
+          <tspan dy="1em" x="0.0">macos                                                                                     </tspan>
+        </tspan><tspan y="74.66664800000001">
+          <tspan dy="1em" x="0.0">windows                                                                                   </tspan>
+        </tspan><tspan y="93.33331000000001">
+          <tspan dy="1em" x="0.0" class="br" style="fill: #64bc69">me@laptop</tspan><tspan x="75.80999997">:</tspan><tspan x="84.2333333" class="br" style="fill: #68a2ec">~/coliru</tspan><tspan x="151.61999994">$ # Install dotfiles on local machine:                                  </tspan>
+        </tspan><tspan y="111.99997200000001">
+          <tspan dy="1em" x="0.0" class="br" style="fill: #64bc69">me@laptop</tspan><tspan x="75.80999997">:</tspan><tspan x="84.2333333" class="br" style="fill: #68a2ec">~/coliru</tspan><tspan x="151.61999994">$ coliru examples/basic/manifest.yml --tag-rules linux                  </tspan>
+        </tspan><tspan y="130.66663400000002">
+          <tspan dy="1em" x="0.0" class="br">[1/2]</tspan><tspan x="42.11666665"> Copy gitconfig to ~/.gitconfig                                                      </tspan>
+        </tspan><tspan y="149.33329600000002">
+          <tspan dy="1em" x="0.0" class="br">[2/2]</tspan><tspan x="42.11666665"> Link bashrc to ~/.bashrc                                                            </tspan>
+        </tspan><tspan y="167.99995800000002">
+          <tspan dy="1em" x="0.0" class="br">[2/2]</tspan><tspan x="42.11666665"> Link vimrc to ~/.vimrc                                                              </tspan>
+        </tspan><tspan y="186.66662000000002">
+          <tspan dy="1em" x="0.0" class="br">[2/2]</tspan><tspan x="42.11666665"> Run sh ./script.sh arg1 linux                                                       </tspan>
+        </tspan><tspan y="205.33328200000003">
+          <tspan dy="1em" x="0.0">This is script.sh, called on laptop with args &quot;arg1 linux&quot;                                </tspan>
+        </tspan><tspan y="223.99994400000003">
+          <tspan dy="1em" x="0.0" class="br" style="fill: #64bc69">me@laptop</tspan><tspan x="75.80999997">:</tspan><tspan x="84.2333333" class="br" style="fill: #68a2ec">~/coliru</tspan><tspan x="151.61999994">$ # Install dotfiles on remote machine:                                 </tspan>
+        </tspan><tspan y="242.66660600000003">
+          <tspan dy="1em" x="0.0" class="br" style="fill: #64bc69">me@laptop</tspan><tspan x="75.80999997">:</tspan><tspan x="84.2333333" class="br" style="fill: #68a2ec">~/coliru</tspan><tspan x="151.61999994">$ coliru examples/basic/manifest.yml --tag-rules linux --host pi@rpi    </tspan>
+        </tspan><tspan y="261.33326800000003">
+          <tspan dy="1em" x="0.0" class="br">[1/2]</tspan><tspan x="42.11666665"> Copy gitconfig to pi@rpi:~/.gitconfig                                               </tspan>
+        </tspan><tspan y="279.99993">
+          <tspan dy="1em" x="0.0" class="br">[2/2]</tspan><tspan x="42.11666665"> Copy bashrc to pi@rpi:~/.bashrc                                                     </tspan>
+        </tspan><tspan y="298.66659200000004">
+          <tspan dy="1em" x="0.0" class="br">[2/2]</tspan><tspan x="42.11666665"> Copy vimrc to pi@rpi:~/.vimrc                                                       </tspan>
+        </tspan><tspan y="317.333254">
+          <tspan dy="1em" x="0.0" class="br">[2/2]</tspan><tspan x="42.11666665"> Copy script.sh to pi@rpi:~/.coliru/script.sh                                        </tspan>
+        </tspan><tspan y="335.99991600000004">
+          <tspan dy="1em" x="0.0" class="br">[2/2]</tspan><tspan x="42.11666665"> Run sh ./script.sh arg1 linux on pi@rpi                                             </tspan>
+        </tspan><tspan y="354.666578">
+          <tspan dy="1em" x="0.0">This is script.sh, called on rpi with args &quot;arg1 linux&quot;                                   </tspan>
+        </tspan><tspan y="373.33324000000005">
+          <tspan dy="1em" x="0.0" class="br" style="fill: #64bc69">me@laptop</tspan><tspan x="75.80999997">:</tspan><tspan x="84.2333333" class="br" style="fill: #68a2ec">~/coliru</tspan><tspan x="151.61999994">$ </tspan><tspan x="168.4666666" style="fill: #191c22"> </tspan><tspan x="176.88999993000002">                                                                     </tspan>
+        </tspan><tspan y="391.999902">
+          <tspan dy="1em" x="0.0">                                                                                          </tspan>
+        </tspan><tspan y="410.66656400000005">
+          <tspan dy="1em" x="0.0">                                                                                          </tspan>
+        </tspan><tspan y="429.333226">
+          <tspan dy="1em" x="0.0">                                                                                          </tspan>
+        </tspan>
+      </text>
+    </svg>
+  </g>
+
+  
+    <svg x="340.807" y="186.667" width="93.333" height="93.333">
+  <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000.0 1000.0" style="filter: drop-shadow(0px 0px 5px rgba(0, 0, 0, 0.4))">
+  <defs>
+    <mask id="small-triangle-mask">
+      <rect width="100%" height="100%" fill="white"></rect>
+      <polygon points="700.0 500.0, 400.00000000000006 326.7949192431122, 399.9999999999999 673.2050807568877" fill="black">
+      </polygon>
+    </mask>
+  </defs>
+  <polygon points="1000.0 500.0, 250.0000000000001 66.98729810778059, 249.99999999999977 933.0127018922192" mask="url(#small-triangle-mask)" fill="white">
+  </polygon>
+  <polyline points="673.2050807568878 400.0, 326.7949192431123 600.0" stroke="white" stroke-width="90">
+  </polyline>
+</svg>
+</svg>
+  
+</svg>

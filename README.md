@@ -2,7 +2,7 @@
 
 A minimal, flexible, dotfile installer
 
-[![asciicast](https://asciinema.org/a/680428.svg)](https://asciinema.org/a/680428)
+[![asciicast](examples/asciinema/thumbnail.svg)](https://asciinema.org/a/680428)
 
 ## Features
 
