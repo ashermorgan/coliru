@@ -144,7 +144,12 @@ fn send_dir(src: &str, dst: &str, host: &str) -> Result<()> {
         cmd.stdout(Stdio::null());
 
         if env::var("COLIRU_TEST").is_ok() {
-            cmd.args(["-o", "StrictHostKeyChecking=no", "-P", "2222"]);
+            cmd.args([
+                "-o", "StrictHostKeyChecking=no",
+                "-o", "UserKnownHostsFile=/dev/null",
+                "-o", "LogLevel=ERROR",
+                "-P", "2222",
+            ]);
         }
         cmd.args(["-r", &_src.to_string_lossy(), &format!("{host}:{dst}")]);
 
@@ -168,7 +173,12 @@ fn send_dir(src: &str, dst: &str, host: &str) -> Result<()> {
 pub fn send_command(command: &str, host: &str) -> Result<()> {
     let mut cmd = Command::new("ssh");
     if env::var("COLIRU_TEST").is_ok() {
-        cmd.args(["-o", "StrictHostKeyChecking=no", "-p", "2222"]);
+        cmd.args([
+            "-o", "StrictHostKeyChecking=no",
+            "-o", "UserKnownHostsFile=/dev/null",
+            "-o", "LogLevel=ERROR",
+            "-p", "2222",
+        ]);
     }
     cmd.args([host, command]);
 
