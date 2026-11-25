@@ -105,7 +105,7 @@ fn setup_e2e(name: &str) -> (TempDirs, Command) {
     let dirs = TempDirs::new(name);
 
     let exe = env::current_exe().unwrap().parent().unwrap().to_path_buf()
-        .join(format!("../coliru{}", env::consts::EXE_SUFFIX));
+        .join(format!("../../../../coliru{}", env::consts::EXE_SUFFIX));
     let mut cmd = Command::new(exe);
     cmd.current_dir(&dirs.local);
     if cfg!(target_family = "unix") {
@@ -169,7 +169,7 @@ pub fn setup_e2e_ssh(name: &str) -> (TempDirs, Command) {
 /// ```
 fn copy_manifest(dir: &Path, home_dir: &str, script_dir: &str) {
     let examples = env::current_exe().unwrap().parent().unwrap().to_path_buf()
-        .join("../../../examples/test");
+        .join("../../../../../../examples/test");
 
     let copy_file = |path: &str| {
         let mut contents = read_file(&examples.join(path));
